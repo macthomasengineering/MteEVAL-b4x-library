@@ -1,0 +1,115 @@
+﻿Version=2.8
+NumberOfModules=4
+Module1=Codeblock
+Module2=Codegen
+Module3=PCODE
+Module4=Run
+Build1=Default,com.macthomasengineering.iMteEval
+NumberOfFiles=1
+File1=Demo.bil
+NumberOfLibraries=1
+Library1=icore
+@EndOfDesignText@
+'Code module
+#Region  Project Attributes 
+	#ApplicationLabel: iMteEval Demo
+	#Version: 1.0.1 
+	'Orientation possible values: Portrait, LandscapeLeft, LandscapeRight and PortraitUpsideDown
+	#iPhoneOrientations: Portrait, LandscapeLeft, LandscapeRight
+	#iPadOrientations: Portrait, LandscapeLeft, LandscapeRight, PortraitUpsideDown
+	#Target: iPhone, iPad
+	#MinVersion: 7
+#End Region
+
+Sub Process_Globals
+	'These global variables will be declared once when the application starts.
+	'Public variables can be accessed from all modules.
+	Public App As Application
+	Public NavControl As NavigationController
+	Private Page1 As Page
+	Private cb As Codeblock
+End Sub
+
+Private Sub Application_Start (Nav As NavigationController)
+	NavControl = Nav
+	Page1.Initialize("Page1")
+	Page1.Title = "Page 1"
+	Page1.RootPanel.Color = Colors.White
+	Page1.RootPanel.LoadLayout("Demo")
+	NavControl.ShowPage(Page1)
+End Sub
+
+Private Sub Page1_Resize(Width As Int, Height As Int)
+	
+End Sub
+
+Private Sub Application_Background
+	
+End Sub
+
+'*--------------------------------------------------------------------------
+'*
+Sub btnRunTest_Click
+	
+	DoTest( 1, "Add and Subtract", "{||5+6-3}",  Array () )
+	DoTest( 2, "Divide By Zero", "{||5+6/0}",  Array () )
+	DoTest( 3, "Cirumference of circle, radius=5", "{|r|2*CPi*r}",  Array (5) )
+	DoTest( 4, "Area of circle, radius=5", "{|r|CPi*(r*r)}",  Array (5) )
+	DoTest( 5, "Missing parenthesis", "{||35*3+6)}",  Array (5) )
+	DoTest( 6, "Min with iif()", "{|a,b| iif( a > b, b, a) }",  Array (5,10) )
+	DoTest( 7, "Find length of diagonal", "{|a,b| sqrt(a*a+b*b)}",  Array (7,9) )
+	DoTest( 8, "Report e", "{|| ce }", Array() )
+	DoTest( 9, "Kitchen Sink", "{|a,b,c,d,e,f|-abs(iif(a+c*f <= e/d*a, iif( min(a,d) >= max(c,e), b*b, c*c ), iif( 5 == c || 5 == e || 77 > 22 && !(10 < 3), Sqrt(c), Sqrt(d))))}", Array ( 34, 43, 17, 25,45, 13) ) 
+
+End Sub 
+
+
+'*--------------------------------------------------------------------------
+'*
+'* DoTest - Compile and run test case
+'*
+'*
+ Private Sub DoTest ( nTestNumber As Int, sDescription As String, sCodeblockText As String, aArgs() As Object )
+	Private nResult As Double
+		
+	Log( "---------------------------------" )
+	Log( nTestNumber & " - " & sDescription )
+	Log( "Codeblock=" & sCodeblockText	)
+		
+	cb.Initialize
+	cb.Compile( sCodeblockText )	
+	If ( cb.Error <> cb.ERROR_NONE ) Then 
+		Log( "Compile error=" & cb.Error )
+		Log( "Error Description: " & cb.ErrorDesc)
+		Log( "Error Detail: " & cb.ErrorDetail )
+		Return		
+	End If
+	Log( "Codeblock compiled.")
+
+	If ( aArgs.Length = 0 ) Then 
+		nResult = cb.Eval
+	Else 
+		nResult = cb.Eval2( aArgs )	
+	End If
+
+	Log( "Codeblock executed.")
+	Log( "Result=" & nResult ) 
+	
+	If ( cb.Error <> cb.ERROR_NONE ) Then 
+		Log( "Eval error=" & cb.Error )
+		Log( "Error Description: " & cb.ErrorDesc)
+		Log( "Error Detail: " & cb.ErrorDetail )
+	End If
+
+   ' Uncomment To Decompile
+'	Private CodeListing As List 
+'	CodeListing = cb.Decompile
+'	Log( "------------------------")
+'	For Each sLine As String In CodeListing
+'		Log( sLine )
+'	Next
+'	Log( "------------------------")
+
+	Return 
+
+End Sub 
