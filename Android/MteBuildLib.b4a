@@ -1,0 +1,141 @@
+﻿Version=6
+NumberOfModules=6
+Module1=Starter
+Module2=Codeblock
+Module3=Codegen
+Module4=Mtelog
+Module5=PCODE
+Module6=Run
+Build1=Default,com.macthomasengineering.mteeval
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: http://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="19"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~'End of default text.~\n~
+IconFile=
+NumberOfFiles=1
+File1=Demo.bal
+NumberOfLibraries=2
+Library1=core
+Library2=javaobject
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: MteEval
+	#VersionCode: 101
+	#VersionName: 1.0.101
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: unspecified
+	#CanInstallToExternalStorage: False
+	
+	#LibraryVersion: 1.01
+	#LibraryName: MteEval
+	#LibraryAuthor: MacThomas Engineering
+
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: False
+	#IncludeTitle: True
+#End Region
+
+Sub Process_Globals
+	'These global variables will be declared once when the application starts.
+	'These variables can be accessed from all modules.
+
+End Sub
+
+Sub Globals
+	'These global variables will be redeclared each time the activity is created.
+	'These variables can only be accessed from this module.
+
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	'Do not forget to load the layout file created with the visual designer. For example:
+	Activity.LoadLayout("Demo")
+
+End Sub
+
+Sub Activity_Resume
+
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+
+End Sub
+
+Sub btnRunTests_Click
+	
+	RunTests
+	
+End Sub 
+
+ '*--------------------------------------------------------------------------
+'*
+'* RunTests - Run test cases
+'*
+'*
+Private Sub RunTests
+
+
+	DoTest( 1, "Add and Subtract", "{||5+6-3}",  Array () )
+	DoTest( 2, "Divide By Zero", "{||5+6/0}",  Array () )
+	DoTest( 3, "Cirumference of circle, radius=5", "{|r|2*CPi*r}",  Array (5) )
+	DoTest( 4, "Area of circle, radius=5", "{|r|CPi*(r*r)}",  Array (5) )
+	DoTest( 5, "Missing parenthesis", "{||35*3+6)}",  Array (5) )
+	DoTest( 6, "Min with iif()", "{|a,b| iif( a > b, b, a) }",  Array (5,10) )
+	DoTest( 7, "Find length of diagonal", "{|a,b| sqrt(a*a+b*b)}",  Array (7,9) )
+	DoTest( 8, "Report e", "{|| ce }", Array() )
+	DoTest( 9, "Kitchen Sink", "{|a,b,c,d,e,f|-abs(iif(a+c*f <= e/d*a, iif( min(a,d) >= max(c,e), b*b, c*c ), iif( 5 == c || 5 == e || 77 > 22 && !(10 < 3), Sqrt(c), Sqrt(d))))}", Array ( 34, 43, 17, 25,45, 13) ) 
+
+	Mtelog.Stop	
+	
+ End Sub
+ 
+ '*--------------------------------------------------------------------------
+'*
+'* DoTest - Compile and run test case
+'*
+'*
+ Private Sub DoTest ( nTestNumber As Int, sDescription As String, sCodeblockText As String, aArgs() As Object )
+	Private cb As Codeblock
+	Private nResult As Double
+
+
+	Log( "*********************************")
+	Log( nTestNumber & " - " & sDescription )
+	Log( "Codeblock=" & sCodeblockText	)
+		
+	cb.Initialize
+	cb.Compile( sCodeblockText )	
+	If ( cb.Error <> cb.ERROR_NONE ) Then 
+		Log( "Compile error=" & cb.Error )
+		Log( "Error Description: " & cb.ErrorDesc)
+		Log( "Error Detail: " & cb.ErrorDetail )
+		Return		
+	End If
+	Log( "Codeblock compiled.")
+
+	If ( aArgs.Length = 0 ) Then 
+		nResult = cb.Eval
+	Else 
+		nResult = cb.Eval2( aArgs )	
+	End If
+
+	Log( "Codeblock executed.")
+	Log( "Result=" & nResult ) 
+	
+	If ( cb.Error <> cb.ERROR_NONE ) Then 
+		Log( "Eval error=" & cb.Error )
+		Log( "Error Description: " & cb.ErrorDesc)
+		Log( "Error Detail: " & cb.ErrorDetail )
+	End If
+    
+	'Uncomment To Decompile
+	Private CodeListing As List 
+	CodeListing = cb.Decompile
+	Log( "------------------------")
+	For Each sLine As String In CodeListing
+		Log( sLine )
+	Next
+	Log( "------------------------")
+
+	Return 
+
+End Sub 
