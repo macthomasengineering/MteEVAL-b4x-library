@@ -9,6 +9,7 @@ B4A=true
 '*
 '**********************************************************************************
 
+
 #Region BSD License
 '**********************************************************************************
 '*
@@ -91,11 +92,15 @@ Sub Process_Globals
 	Private Const TOKEN_TYPE_BLOCK=7 As Int              'ignore
 	Private Const TOKEN_TYPE_UNKNOWN=8 As Int            'ignore
 	Private Const TOKEN_TYPE_FINISHED=9 As Int	         'ignore
+	Private Const TOKEN_TYPE_HEX_NUMBER=10 As Int        'ignore
 	Private Const NULL_TOKEN=Chr(0) As String
 
-	' RegEx
-	Private Const TOKENIZER_MATCH="\(|\)|>=|<=|<>|\|\||&&|!=|==|[+><=*/\-!%,]|[\.\d]+|\b\w+\b" As String
-	'Private Const TOKENIZER_MATCH="\(|\)|>=|<=|<>|\|\||&&|!=|==|[+><=*/\-!%,#]|[\.\d]+|\b\w+\b" As String
+	' v1.01 pattern
+	' Private Const TOKENIZER_MATCH="\(|\)|>=|<=|<>|\|\||&&|!=|==|[+><=*/\-!%,]|[\.\d]+|\b\w+\b" As String
+	
+	' v1.02 pattern	
+	Private Const TOKENIZER_MATCH="\(|\)|>=|<=|<>|\|\||&&|!=|==|<<|>>|0x[\.\da-z]+|[&\^\|~]|[+><=*/\-!%,]|[\.\d]+|\b\w+\b" As String
+	
 	Private Const CODEBLOCK_MATCH="(\{)?(\|)?([^\|\}]*)(\|)?([^}]*)(\})?" As String
 	Private Const GROUP_OPEN_BRACKET   = 1 As Int  
 	Private Const GROUP_OPEN_PIPE      = 2 As Int  
@@ -107,6 +112,10 @@ Sub Process_Globals
 	' Abort used to unwind the parser when error found
 	Private Const ABORT=False As Boolean
 	Private Const SUCCESS=True As Boolean
+
+	' Bit.ParseInt conversion
+	Private Const HEX2DECIMAL=16 As Int
+
 
 End Sub
 
@@ -566,7 +575,7 @@ Private Sub GetToken As Int
 	gToken.nType = TOKEN_TYPE_NONE
 	gToken.sText = NULL_TOKEN
 
-	'Advanced index 
+	'Advance index 
 	gTokenIndex = gTokenIndex + 1 
 	
 	'If index is past the end, no more tokens	
@@ -582,7 +591,7 @@ Private Sub GetToken As Int
 	'Log( "sMatch=" & sMatch )
 		
 	' Relational operators?
-	If ( Regex.IsMatch("<=|>=|==|<|>|!=|\|\||&&", sMatch)  = True ) Then 
+	If ( Regex.IsMatch("<=|>=|==|<|>|!=|\|\||&&|&", sMatch)  = True ) Then 
 		
 		gToken.sText = sMatch
 		gToken.nType = TOKEN_TYPE_DELIMITER
@@ -598,6 +607,15 @@ Private Sub GetToken As Int
 		Return ( gToken.nType ) 
 
 	End If 
+
+	' Is Hex Number? 
+	If ( Regex.IsMatch("0x[\.\da-z]+", sMatch) = True ) Then 
+
+		gToken.sText = sMatch
+		gToken.nType = TOKEN_TYPE_HEX_NUMBER
+		Return ( gToken.nType )
+		
+	End If
 
 	' Number?
 	If ( IsNumber( sMatch ) = True ) Then 
@@ -716,7 +734,7 @@ Private Sub EvalLogicalAnd As Boolean
 	Private bSuccess As Boolean
 
 	' Next higher precedence		
-	bSuccess = EvalRelational
+	bSuccess = EvalBitwise
 	If ( bSuccess = ABORT  ) Then Return ( ABORT )
 	
 	' Save operator on local stack
@@ -735,7 +753,7 @@ Private Sub EvalLogicalAnd As Boolean
 		Push
 		GetToken 
 		
-		bSuccess = EvalRelational
+		bSuccess = EvalBitwise
 		If ( bSuccess = ABORT  ) Then Return ( ABORT )
 	
 		' Gen code
@@ -753,6 +771,28 @@ Private Sub EvalLogicalAnd As Boolean
 		
 End Sub
 
+'*---------------------------------------------------------------- EvalBitwise
+'*
+Private Sub EvalBitwise As Boolean
+	Private sOperator As String 
+	Private bSuccess As Boolean 
+
+    bSuccess = EvalRelational
+	If ( bSuccess = ABORT ) Then Return ( ABORT ) 
+
+	sOperator = gToken.sText 
+	
+	' Generate error if for unsupported operator ( for now )
+	If ( Regex.IsMatch("&|\^|\|", sOperator )  = True ) Then 
+		SetError2( gCodeBlock.ERROR_UNSUPPORTED_OPER ) 
+		Return ( ABORT )
+	End If
+	
+	Return ( SUCCESS )
+	
+End Sub 
+
+
 '*------------------------------------------------------------- EvalRelational
 '*
 Private Sub EvalRelational As Boolean
@@ -760,20 +800,22 @@ Private Sub EvalRelational As Boolean
 	Private bSuccess As Boolean 
 		
 	' Next higher rprecedence
-	bSuccess = EvalAddSub 
+	bSuccess = EvalBitShift
 	If ( bSuccess = ABORT  ) Then Return ( ABORT )
 	
 	' Save operator on local stack
 	sOperator = gToken.sText 
 	
 	' Relational operator?
-	If ( Regex.IsMatch("<=|>=|==|<|>|!=|\|\||&&", sOperator )  = True ) Then 
+	'If ( Regex.IsMatch("<=|>=|==|<|>|!=|\|\||&&", sOperator )  = True ) Then 
+
+	If ( Regex.IsMatch("<=|>=|==|(?<!:)<(?!<)|(?<!>)>(?!>)|!=|\|\||&&", sOperator )  = True ) Then 
 
 		'Push, get, and do next level
 		Push
 		GetToken 
 
-		bSuccess = EvalAddSub 
+		bSuccess = EvalBitShift
 		If ( bSuccess = ABORT  ) Then Return ( ABORT )
 		
 		'Which one? 
@@ -797,6 +839,27 @@ Private Sub EvalRelational As Boolean
 	Return ( SUCCESS )
 	
 End Sub
+
+'*---------------------------------------------------------------- EvalBitShift
+'*
+Private Sub EvalBitShift As Boolean
+	Private sOperator As String 
+	Private bSuccess As Boolean 
+
+    bSuccess = EvalAddSub
+	If ( bSuccess = ABORT ) Then Return ( ABORT ) 
+
+	sOperator = gToken.sText 
+	
+	' Generate error if for unsupported operator ( for now )
+	If ( Regex.IsMatch("<<|>>", sOperator )  = True ) Then 
+		SetError2( gCodeBlock.ERROR_UNSUPPORTED_OPER ) 
+		Return ( ABORT )
+	End If
+	
+	Return ( SUCCESS )
+	
+End Sub 
 
 '*----------------------------------------------------------------- EvalAddSub
 '* 
@@ -889,7 +952,7 @@ Private Sub EvalUnary As Boolean
 	sOperator = ""
 	
 	' Is this a unary operator?
-	If ( Regex.IsMatch( "[+\-!]", gToken.sText ) = True ) Then 
+	If ( Regex.IsMatch( "[+\-!~]", gToken.sText ) = True ) Then 
 		
 		' Save operator on local stack and continue
 		sOperator = gToken.sText 
@@ -911,6 +974,9 @@ Private Sub EvalUnary As Boolean
 		DoNegate
 	Case "!"
 		DoLogicalNot					
+	Case "~"
+		SetError2( gCodeBlock.ERROR_UNSUPPORTED_OPER )
+		Return ( ABORT )
 	End Select
 
 	Return ( SUCCESS ) 
@@ -921,6 +987,7 @@ End Sub
 '* 
 Private Sub EvalParen() As Boolean
 	Private bSuccess As Boolean
+	Private bFinished As Boolean
 	
 	' Is this an open parenthesis?
 	If ( gToken.sText = "(" ) Then
@@ -934,9 +1001,22 @@ Private Sub EvalParen() As Boolean
 		GetToken
 		
 		' Eval sub expression
-		bSuccess = EvalAssignment
-		If ( bSuccess = ABORT  ) Then Return ( ABORT )
-	
+		bFinished = False
+		Do Until (bFinished) 
+
+			' Eval sub expression
+			bSuccess = EvalAssignment
+			If ( bSuccess = ABORT  ) Then Return ( ABORT )
+
+			' If comma, then continue otherwise finish	
+			If ( gToken.sText = "," ) Then 
+				GetToken
+			Else 
+				bFinished = True 
+			End If
+
+		Loop
+
 		' Expecting a closed parenthesis here
 		If ( gToken.sText <> ")" ) Then 
 			SyntaxError( gCodeBlock.ERROR_MISSING_PAREN )
@@ -1039,7 +1119,19 @@ Private Sub EvalAtom As Boolean
 	Case TOKEN_TYPE_FINISHED 
 
 		Return ( SUCCESS )
+
+	Case TOKEN_TYPE_HEX_NUMBER 
+		Private nValue As Double
 		
+		' Convert to decimal
+		nValue = Bit.ParseInt( gToken.sText.SubString(2), HEX2DECIMAL )
+				
+		' Output instruction to load number
+		DoLoadNumber( nValue )
+		
+		' Get next token
+		GetToken
+				
 	Case Else
 		
 		' Syntax error	
@@ -1303,7 +1395,7 @@ Private Sub DoIIF As Boolean
 End Sub
 
 
-'*---------------------------------------------------=--------- DoLoadNumber
+'*------------------------------------------------------------- DoLoadNumber
 '* 
  Sub DoLoadNumber( nValue As Double ) 
 
@@ -1684,6 +1776,8 @@ Private Sub SetError( nError As Int, sDetail As String )  As Int
 		sDesc = "Unbalanced parens."
 	Case gCodeBlock.ERROR_PUTBACK
 		sDesc = "Internal parser error."
+	Case gCodeBlock.ERROR_UNSUPPORTED_OPER
+		sDesc = "Unsupported operator"
 	Case Else 
 		sDesc = "Syntax error."				
 	End Select

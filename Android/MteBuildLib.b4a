@@ -17,13 +17,13 @@ Library2=javaobject
 @EndOfDesignText@
 #Region  Project Attributes 
 	#ApplicationLabel: MteEval
-	#VersionCode: 101
-	#VersionName: 1.0.101
+	#VersionCode: 102
+	#VersionName: 1.0.102
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
 	
-	#LibraryVersion: 1.01
+	#LibraryVersion: 1.02
 	#LibraryName: MteEval
 	#LibraryAuthor: MacThomas Engineering
 
@@ -37,6 +37,8 @@ Library2=javaobject
 Sub Process_Globals
 	'These global variables will be declared once when the application starts.
 	'These variables can be accessed from all modules.
+	
+	Private bDoDecompile = False As Boolean
 
 End Sub
 
@@ -66,14 +68,21 @@ Sub btnRunTests_Click
 	
 End Sub 
 
- '*--------------------------------------------------------------------------
+
+'*--------------------------------------------------------------------------
 '*
 '* RunTests - Run test cases
 '*
 '*
 Private Sub RunTests
+    Private cb As Codeblock
 
+	cb.Initialize
+	Log("-------------------------------")
+	Log("MteEval Library v" & cb.Version )
+	Log("-------------------------------")
 
+	
 	DoTest( 1, "Add and Subtract", "{||5+6-3}",  Array () )
 	DoTest( 2, "Divide By Zero", "{||5+6/0}",  Array () )
 	DoTest( 3, "Cirumference of circle, radius=5", "{|r|2*CPi*r}",  Array (5) )
@@ -83,9 +92,9 @@ Private Sub RunTests
 	DoTest( 7, "Find length of diagonal", "{|a,b| sqrt(a*a+b*b)}",  Array (7,9) )
 	DoTest( 8, "Report e", "{|| ce }", Array() )
 	DoTest( 9, "Kitchen Sink", "{|a,b,c,d,e,f|-abs(iif(a+c*f <= e/d*a, iif( min(a,d) >= max(c,e), b*b, c*c ), iif( 5 == c || 5 == e || 77 > 22 && !(10 < 3), Sqrt(c), Sqrt(d))))}", Array ( 34, 43, 17, 25,45, 13) ) 
+	DoTest( 10, "Sequence test", "{|| iif( 7 > 6, (1,2,3,4,5), (10,11,12)) }", Array () )
+	DoTest( 11, "Bitwise operators Syntax Error", "{|r,g,b|((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff)}",  Array (55,32,16) )
 
-	Mtelog.Stop	
-	
  End Sub
  
  '*--------------------------------------------------------------------------
@@ -127,15 +136,20 @@ Private Sub RunTests
 		Log( "Error Detail: " & cb.ErrorDetail )
 	End If
     
-	'Uncomment To Decompile
-	Private CodeListing As List 
-	CodeListing = cb.Decompile
-	Log( "------------------------")
-	For Each sLine As String In CodeListing
-		Log( sLine )
-	Next
-	Log( "------------------------")
+	
+	' Decompile?
+	If ( bDoDecompile ) Then 
+	
+		Private CodeListing As List 
+		CodeListing = cb.Decompile
+		Log( "------------------------")
+		For Each sLine As String In CodeListing
+			Log( sLine )
+		Next
+		Log( "------------------------")
 
+	End If
+	
 	Return 
 
 End Sub 
