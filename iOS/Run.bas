@@ -47,20 +47,8 @@ B4i=true
 Sub Process_Globals
 
 	' Budget
-	Private Const STACK_SIZE=100 As Int   'ignore
+	Private Const STACK_SIZE=50 As Int    'ignore
 	Private Const MEMORY_SIZE=20 As Int   'ignore
-
-	' Global reference to Codeblock
-	Private gCodeBlock As Codeblock
-
-	' Virtual Machine
-	Private nAX=0 As Double                    ' Accumlator 
-	Private nIP=0 As Int                       ' Instruction pointer
-	Private nSP=0 As Int                       ' Stack pointer
-	Private aStack( STACK_SIZE ) As Double     ' Stack
-	
-	' Variable memory storage (Parameters stored here)
-	Private aVarMemory( MEMORY_SIZE )  As Double
 	
 	Private Const CODE_HEADER_PARAM_COUNT = 0 As Int  'ignore
 	Private Const CODE_STARTS_HERE        = 1 As Int  'ignore 
@@ -71,25 +59,41 @@ End Sub
 '*
 Public Sub Execute( oCodeBlock As Codeblock, Bytecode As List, aArgs() As Object ) As Double
 	Private nRetVal As Double 
-	Private nParamCount As Int
-	Private nArgIndex As Int
-
-	
-	' Set global reference to Codeblock 
-	gCodeBlock = oCodeBlock 
 
 	' Attempt to run before compiling?	Compile error?
 	If ( Bytecode.Size = 0 ) Then 
-		SetError( gCodeBlock.ERROR_NO_CODE, "Check compile error." )
+		SetError( oCodeBlock, oCodeBlock.ERROR_NO_CODE, "Check compile error." )
 		Return ( 0 )
 	End If
+		 
+	' Run code	
+	nRetVal = ExecuteCode( oCodeBlock, Bytecode, aArgs ) 
+	
+	Return ( nRetVal ) 
+	
+End Sub
+
+'*----------------------------------------------------------- ExecuteCode
+'*
+Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Object ) As Double
+	Private nPcode As Int
+	Private nParamCount As Int
+	Private nArgIndex As Int
+	Private bRun=True As Boolean 
+	Private nRetVal=0 As Double
+	Private nValue As Double
+	Private nAX=0 As Double                      ' Accumlator 
+	Private nIP=0 As Int                         ' Instruction pointer
+	Private nSP=0 As Int                         ' Stack pointer
+	Private aStack( STACK_SIZE ) As Double       ' Stack
+	Private aVarMemory( MEMORY_SIZE )  As Double ' Variable memory
 	
 	 ' Get parameter count
-	 nParamCount = Bytecode.Get( CODE_HEADER_PARAM_COUNT ) 
+	 nParamCount = Code.Get( CODE_HEADER_PARAM_COUNT ) 
 	 
 	 ' Invalid number of parameters?  Return error
 	 If ( nParamCount > aArgs.Length ) Then 
-		SetError( gCodeBlock.ERROR_INSUFFICIENT_ARGS, "Expecting " & nParamCount & " arguments." )
+		SetError( oCodeBlock, oCodeBlock.ERROR_INSUFFICIENT_ARGS, "Expecting " & nParamCount & " arguments." )
 		Return ( 0 ) 		
 	End If
 	
@@ -101,7 +105,7 @@ Public Sub Execute( oCodeBlock As Codeblock, Bytecode As List, aArgs() As Object
 			
 			' Validate parameter is a number
 			If ( IsNumber( aArgs( nArgIndex )) = False  ) Then 
-				SetError( gCodeBlock.ERROR_ARG_NOT_NUMBER, "Argument #" & nArgIndex & "not a number." )
+				SetError( oCodeBlock, oCodeBlock.ERROR_ARG_NOT_NUMBER, "Argument #" & nArgIndex & "not a number." )
 				Return ( 0 ) 		
 			End If
 			aVarMemory( nArgIndex ) = aArgs( nArgIndex )		
@@ -109,21 +113,6 @@ Public Sub Execute( oCodeBlock As Codeblock, Bytecode As List, aArgs() As Object
 		Next
 
 	End If 
-		 
-	' Run code	
-	nRetVal = ExecuteCode( Bytecode ) 
-	
-	Return ( nRetVal ) 
-	
-End Sub
-
-'*----------------------------------------------------------- ExecuteCode
-'*
-Private Sub ExecuteCode( Code As List ) As Double
-	Private nPcode As Int
-	Private bRun=True As Boolean 
-	Private nRetVal=0 As Double
-	Private nValue As Double
 	
 	' Set instruction pointer 
 	nIP = CODE_STARTS_HERE
@@ -143,7 +132,7 @@ Private Sub ExecuteCode( Code As List ) As Double
 
 			' Overlfow?				
 			If ( nSP >= STACK_SIZE ) Then
-				StackOverFlowError
+				StackOverFlowError( oCodeBlock, nIP, nAX, nSP )
 				Return ( 0 ) 
 			End If
 			
@@ -174,7 +163,7 @@ Private Sub ExecuteCode( Code As List ) As Double
 
 			' Check for divide by zero
 			If ( nAX = 0 ) Then 
-				DivideByZeroError 	
+				DivideByZeroError( oCodeBlock, nIP, nAX, nSP ) 	
 				Return ( 0 )			
 			End If
 
@@ -300,7 +289,7 @@ Private Sub ExecuteCode( Code As List ) As Double
 			
 		Case Else
 			
-			SetError( gCodeBlock.ERROR_ILLEGAL_CODE, "Pcode=" & nPcode )
+			SetError( oCodeBlock, oCodeBlock.ERROR_ILLEGAL_CODE, "Pcode=" & nPcode )
 			Return ( 0 )
 			
 		End Select
@@ -318,55 +307,53 @@ End Sub
 
 '*------------------------------------------------------- StackOverFlowError
 '*
-Private Sub StackOverFlowError As Int 
+Private Sub StackOverFlowError( oCodeBlock As Codeblock, nIP As Int, nAX As Int, nSP As Int) As Int 
 	Private sDetail As String 
 
 	' Prcoessor state
 	sDetail = $"IP=${nIP}, AX=${nAX}, SP=${nSP}"$
 
-	Return ( SetError( gCodeBlock.ERROR_STACK_OVERFLOW, sDetail )  )
+	Return ( SetError( oCodeBlock, oCodeBlock.ERROR_STACK_OVERFLOW, sDetail )  )
 	
 End Sub 
 
-'*------------------------------------------------------- StackOverFlowError
+'*------------------------------------------------------------ DivideByZero
 '*
-Private Sub DivideByZeroError As Int 
+Private Sub DivideByZeroError( oCodeBlock As Codeblock, nIP As Int, nAX As Int, nSP As Int) As Int 
 	Private sDetail As String 
 
 	' Prcoessor state
 	sDetail = $"IP=${nIP}, AX=${nAX}, SP=${nSP}"$
 
-	Return ( SetError( gCodeBlock.ERROR_DIVIDE_BY_ZERO, sDetail )  )
+	Return ( SetError( oCodeBlock, oCodeBlock.ERROR_DIVIDE_BY_ZERO, sDetail )  )
 	
 End Sub 
-
-
 
 '*---------------------------------------------------------------- SetError
 '*
-Private Sub SetError( nError As Int, sDetail As String )  As Int
+Private Sub SetError( oCodeBlock As Codeblock, nError As Int, sDetail As String )  As Int
 	Private sDesc As String 
 		
 	' Get error description
 	Select( nError ) 
-	Case gCodeBlock.ERROR_NO_CODE
+	Case oCodeBlock.ERROR_NO_CODE
 		sDesc = "No code to execute."
-	Case gCodeBlock.ERROR_ILLEGAL_CODE
+	Case oCodeBlock.ERROR_ILLEGAL_CODE
 		sDesc = "Ilegal Instruction."
-	Case gCodeBlock.ERROR_INSUFFICIENT_ARGS
+	Case oCodeBlock.ERROR_INSUFFICIENT_ARGS
 		sDesc = "Insufficient arguments."
-	Case gCodeBlock.ERROR_STACK_OVERFLOW
+	Case oCodeBlock.ERROR_STACK_OVERFLOW
 		sDesc = "Stack Overflow."
-	Case gCodeBlock.ERROR_DIVIDE_BY_ZERO
+	Case oCodeBlock.ERROR_DIVIDE_BY_ZERO
 		sDesc = "Divide by zero."
 	Case Else 
 		sDesc = "Other error."				
 	End Select
 
 	' Store error
-	gCodeBlock.Error = nError
-	gCodeBlock.ErrorDesc = sDesc
-	gCodeBlock.ErrorDetail = sDetail
+	oCodeBlock.Error = nError
+	oCodeBlock.ErrorDesc = sDesc
+	oCodeBlock.ErrorDetail = sDetail
 
 	Return ( nError )	
 	
@@ -398,6 +385,7 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 	Private nValue As Double
 	Private nTarget As Int
 	Private nParamCount As Int
+	Private nIP As Int
 	
 	 nParamCount = Code.Get( CODE_HEADER_PARAM_COUNT ) 
 	 Decode.Add( "-- Header --" )
@@ -567,22 +555,16 @@ End Sub
 
 '*--------------------------------------------------------------- pad
 '*
-Private Sub pad( nIP2 As Int, sInstruct As String, sOperands As String ) As String 
+Private Sub pad( nIP As Int, sInstruct As String, sOperands As String ) As String 
 	Private sInstructWithPad As String 
 	Private sIpWithPad As String 
 	
-	sIpWithPad = nIP2 & ":          "
+	sIpWithPad = nIP & ":          "
 	sInstructWithPad = sInstruct &  "          "
 	
 	'Log( "IPLen=" & sIpWithPad.SubString2(0, 7).Length )
 	'Log( "InstLen=" & sInstructWithPad.SubString2(0,8).Length )
-	
 
 	Return ( sIpWithPad.SubString2(0, 7) & sInstructWithPad.SubString2(0,8) & sOperands )
-	
-End Sub
-
-
-Sub btnRunTest_Click
 	
 End Sub

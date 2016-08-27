@@ -13,7 +13,7 @@ Library1=icore
 'Code module
 #Region  Project Attributes 
 	#ApplicationLabel: iMteEval Demo
-	#Version: 1.0.1 
+	#Version: 1.0.2 
 	'Orientation possible values: Portrait, LandscapeLeft, LandscapeRight and PortraitUpsideDown
 	#iPhoneOrientations: Portrait, LandscapeLeft, LandscapeRight
 	#iPadOrientations: Portrait, LandscapeLeft, LandscapeRight, PortraitUpsideDown
@@ -27,7 +27,7 @@ Sub Process_Globals
 	Public App As Application
 	Public NavControl As NavigationController
 	Private Page1 As Page
-	Private cb As Codeblock
+	Private bDoDecompile = True As Boolean
 End Sub
 
 Private Sub Application_Start (Nav As NavigationController)
@@ -51,6 +51,25 @@ End Sub
 '*
 Sub btnRunTest_Click
 	
+	RunTests
+	
+End Sub 
+
+
+'*--------------------------------------------------------------------------
+'*
+'* RunTests - Run test cases
+'*
+'*
+Private Sub RunTests
+	Private cbv As Codeblock
+	
+	cbv.Initialize
+
+	Log("-------------------------------")
+	Log("MteEval Library v" & cbv.Version )
+	Log("-------------------------------")
+	
 	DoTest( 1, "Add and Subtract", "{||5+6-3}",  Array () )
 	DoTest( 2, "Divide By Zero", "{||5+6/0}",  Array () )
 	DoTest( 3, "Cirumference of circle, radius=5", "{|r|2*CPi*r}",  Array (5) )
@@ -60,19 +79,22 @@ Sub btnRunTest_Click
 	DoTest( 7, "Find length of diagonal", "{|a,b| sqrt(a*a+b*b)}",  Array (7,9) )
 	DoTest( 8, "Report e", "{|| ce }", Array() )
 	DoTest( 9, "Kitchen Sink", "{|a,b,c,d,e,f|-abs(iif(a+c*f <= e/d*a, iif( min(a,d) >= max(c,e), b*b, c*c ), iif( 5 == c || 5 == e || 77 > 22 && !(10 < 3), Sqrt(c), Sqrt(d))))}", Array ( 34, 43, 17, 25,45, 13) ) 
+	DoTest( 10, "Sequence test", "{|| iif( 7 > 6, (1,2,3,4,5), (10,11,12)) }", Array () )
+	DoTest( 11, "Bitwise operators Syntax Error", "{|r,g,b|((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff)}",  Array (55,32,16) )
 
-End Sub 
-
-
-'*--------------------------------------------------------------------------
+ End Sub
+ 
+ '*--------------------------------------------------------------------------
 '*
 '* DoTest - Compile and run test case
 '*
 '*
  Private Sub DoTest ( nTestNumber As Int, sDescription As String, sCodeblockText As String, aArgs() As Object )
+	Private cb As Codeblock
 	Private nResult As Double
-		
-	Log( "---------------------------------" )
+
+
+	Log( "*********************************")
 	Log( nTestNumber & " - " & sDescription )
 	Log( "Codeblock=" & sCodeblockText	)
 		
@@ -100,16 +122,24 @@ End Sub
 		Log( "Error Description: " & cb.ErrorDesc)
 		Log( "Error Detail: " & cb.ErrorDetail )
 	End If
+    
+	
+	' Decompile?
+	If ( bDoDecompile ) Then 
+	
+		Private CodeListing As List 
+		CodeListing = cb.Decompile
+		Log( "------------------------")
+		For Each sLine As String In CodeListing
+			Log( sLine )
+		Next
+		Log( "------------------------")
 
-   ' Uncomment To Decompile
-'	Private CodeListing As List 
-'	CodeListing = cb.Decompile
-'	Log( "------------------------")
-'	For Each sLine As String In CodeListing
-'		Log( sLine )
-'	Next
-'	Log( "------------------------")
-
+	End If
+	
 	Return 
 
 End Sub 
+
+
+'*--------------------------------------
