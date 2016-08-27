@@ -50,6 +50,13 @@ B4J=true
 '*
 '* No.        Who  Date        Description
 '* =====      ===  ==========  ======================================================
+'* 1.02       MTE  2016/08/26  - Fixed syntax error bug with parenthetical comma
+'*                               expressions 
+'*                             - Moved software CPU to local stack to support Codeblock 
+'*                               nesting
+'*                             - Added support for hexadecimal number format 0xNNNN
+'*                             - Added strucural code to support bitwise operators
+'*                             - Added syntax error trap for bitwise ops until supported.
 '* 1.01       MTE  2016/08/23  - Added #if B4I in Run.bas for Mod operator
 '*                             - Added #if B4I and custom ExtractExpressions until 
 '*                               we sort out the RegEx difference between B4A and B4I 
@@ -83,6 +90,7 @@ Sub Class_Globals
 	Public Const ERROR_TOO_MANY_ARGS     = 11 As Int
 	Public Const ERROR_UNBALANCED_PARENS = 12 As Int
 	Public Const ERROR_PUTBACK           = 13 As Int
+	Public Const ERROR_UNSUPPORTED_OPER  = 14 As Int
 	Public Const ERROR_NO_CODE           = 20 As Int
 	Public Const ERROR_ILLEGAL_CODE      = 21 As Int
 	Public Const ERROR_INSUFFICIENT_ARGS = 22 As Int
@@ -91,7 +99,7 @@ Sub Class_Globals
 	Public Const ERROR_ARG_NOT_NUMBER    = 25 As Int
 	Public Const ERROR_OTHER             = 33 As Int
 
-	Public Version="1.01" As String
+	Public Version="1.02" As String
 	
 End Sub
 
