@@ -20,7 +20,7 @@ MteEval adopts the "code block" format for expressions from the venerable 1990's
 
 ##Example
 
-Note, you only need to compile the Codeblock once.  Once compiled you can evaluate it as many times as needed, all while supplying different parameter values. 
+Note, you only need to compile a Codeblock once.  Once compiled you can evaluate it as many times as needed, all while supplying different parameter values. 
 
 Example 1: Codeblock without parameters.
 
@@ -40,6 +40,10 @@ cb.Compile( "{|length,width|length*width}" )
 Area = cb.Eval2( Array( 3, 17 ) )    'Area=51
 ```
 _When you evaluate a Codeblock with parameters, use the Eval2 method._
+
+##Operator Support
+
+lorem ipsum dolor
 
 ##Linking to your project
 
