@@ -41,7 +41,7 @@ Area = cb.Eval2( Array( 3, 17 ) )    'Area=51
 ```
 _When you evaluate a Codeblock with parameters, use the Eval2 method._
 
-##Operator Support
+##Operator support
 
 lorem ipsum dolor
 
