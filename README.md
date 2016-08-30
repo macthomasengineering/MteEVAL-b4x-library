@@ -22,7 +22,7 @@ MteEval adopts the "code block" format for expressions from the venerable 1990's
 
 Note, you only need to compile the Codeblock once.  Once compiled you can evaluate it as many times as needed, all while supplying different parameters. 
 
-Example 1: Codeblock without parameters
+Example 1: Codeblock without parameter values.
 
 ```vbnet
 Dim cb as Codeblock
