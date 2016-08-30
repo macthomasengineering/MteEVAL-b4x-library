@@ -12,6 +12,13 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 {|<parameters,>|<expression>}
 ```
 
+```vbnet
+Private cb as Codeblock
+cb.Initialize
+cb.Compile( "{||5 * 3}" )
+Result = cb.Eval
+```
+
 ##Linking
 
 * To use the Android or Java editions, add the .JAR and .XML files to your _Additional Libraries_ folder and check the library through the Libraries Manager.  
