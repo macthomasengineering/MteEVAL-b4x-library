@@ -14,6 +14,8 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 {|<parameters>|<expression>}
 ```
 
+#Codeblocks At Work
+
 Codeblocks are a valuable tool to allow formulas and other calculations to be customized at runtime, which otherwise would require a physical update of the application.
 
 ##Example
