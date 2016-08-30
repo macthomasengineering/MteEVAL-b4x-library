@@ -16,7 +16,7 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 Private cb as Codeblock
 cb.Initialize
 cb.Compile( "{||5 * 3}" )
-Result = cb.Eval
+Result = cb.Eval           'Result=8
 ```
 
 ##Linking
