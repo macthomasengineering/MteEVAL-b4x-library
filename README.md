@@ -28,7 +28,7 @@ Result = cb.Eval           'Result=8
 Example2 : Codeblock with parameters.
 
 ```vbnet
-Private cb as Codeblock
+Dim cb as Codeblock
 cb.Initialize
 cb.Compile( "{|l,w,|l*w}" )
 Area = cb.Eval2( Array( 5, 13 ) )    'Result=65
