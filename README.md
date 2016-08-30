@@ -14,7 +14,7 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 
 To use a code block: 
 
-+ Declare a Codeblock instance
++1 Declare a Codeblock instance
 + Initialize
 + Specify the expression and optional parameters
 + Compile
