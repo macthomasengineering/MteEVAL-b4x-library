@@ -8,7 +8,7 @@ See [Anywhere Software](https://www.b4x.com/) to learn more about the B4A, B4i, 
 
 ##Applications
 
-The ability to create and evaluate expressions at runtime is a powerful tool and allows formulas and other calculations to be customized post installation, which otherwise would require a physical update or a custom build of an application.  For example, any application designed to manage a sales compensation plan could benefit from runtime compilation, where the end-user may want to customize their plan formulas for their product mix and sales goals.  
+The ability to create and evaluate expressions at runtime is a powerful tool and allows formulas and other calculations to be customized post installation, which otherwise would require a physical update or a custom build of an application.  For example, any application designed to manage a sales compensation plan could benefit from runtime compilation, where the end-user may want to customize the plan formulas for their product mix and sales goals.  
 
 ##Usage
 
