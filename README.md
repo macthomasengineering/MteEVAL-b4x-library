@@ -6,7 +6,7 @@ There are three editions of the library: Android (B4A), iOS (B4i), and Java (B4J
 
 See [Anywhere Software](https://www.b4x.com/) to learn more about B4A, B4i, and B4J cross-platform development tools.
 
-##Applications
+##Application
 
 The ability to create and evaluate expressions at runtime is a powerful tool and allows formulas and other calculations to be customized post installation, which otherwise would require a physical update or a custom build of an application.  For example, any application designed to manage a sales compensation plan could benefit from runtime compilation, where the end-user may want to customize the plan formulas for their team members, product mix and sales goals.  
 
