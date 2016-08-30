@@ -37,7 +37,7 @@ Example 2 : Codeblock with parameters.
 Dim cb as Codeblock
 cb.Initialize
 cb.Compile( "{|length,width|length*width}" )
-Area = cb.Eval2( Array( 5, 13 ) )    'Area=65
+Area = cb.Eval2( Array( 3, 17 ) )    'Area=51
 ```
 _When you evaluate a Codeblock with parameters, use the Eval2 method._
 
