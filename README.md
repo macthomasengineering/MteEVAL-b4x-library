@@ -11,7 +11,7 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 ```clipper
 {|<parameters,>|<expression>}
 ```
-To use a code block: 
+**To use a code block: 
 
 1. Declare a Codeblock instance
 2. Initialize
@@ -21,7 +21,7 @@ To use a code block:
 
 
 ```vbnet
-Private cb as Codeblock
+Dim cb as Codeblock
 cb.Initialize
 cb.Compile( "{||5 * 3}" )
 Result = cb.Eval           'Result=8
