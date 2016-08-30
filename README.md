@@ -8,7 +8,7 @@ See [Anywhere Software](https://www.b4x.com/) to learn more about the B4A, B4i, 
 
 ##Applications
 
-Evaluating expressions at runtime is a valuable tool to allow formulas and other calculations to be customized post installation, which otherwise would require a physical update of the application.
+Evaluating expressions at runtime is a valuable tool to allow formulas and other calculations to be customized post installation, which otherwise would require a physical update of the application. 
 
 ##Usage
 
