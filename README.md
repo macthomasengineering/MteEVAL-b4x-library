@@ -6,6 +6,10 @@ There are three editions of the library: Android (B4A), iOS (B4i), and Java (B4J
 
 See [Anywhere Software](https://www.b4x.com/) to learn more about the B4A, B4i, and B4J cross-platform development stacks.
 
+##Applications
+
+Evaluating expressions at runtime is a valuable tool to allow formulas and other calculations to be customized at runtime, which otherwise would require a physical update of the application.
+
 ##Usage
 
 MteEval adopts the "code block" format from the venerable 1990's xBase compiler Clipper 5.  A codeblock is a compilable snippet of code.  Codeblocks begin with an open brace, followed by a optional parameter section couched between pipe symbols, the expression, then ends with a closing brace.
@@ -13,10 +17,6 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 ```clipper
 {|<parameters>|<expression>}
 ```
-
-##Applications
-
-Codeblocks are a valuable tool to allow formulas and other calculations to be customized at runtime, which otherwise would require a physical update of the application.
 
 ##Example
 
