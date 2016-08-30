@@ -27,7 +27,7 @@ Example2 : Codeblock with parameters.
 Private cb as Codeblock
 cb.Initialize
 cb.Compile( "{|l,w,|l*w}" )
-Area = cb.Eval2( Array( 5, 13 ) )
+Area = cb.Eval2( Array( 5, 13 ) )    'Result=65
 ```
 _When you evaluate a Codeblock with parameters, use the Eval2 method._
 
