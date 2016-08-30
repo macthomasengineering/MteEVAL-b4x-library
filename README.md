@@ -11,14 +11,13 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 ```clipper
 {|<parameters,>|<expression>}
 ```
-
 To use a code block: 
 
-*1 Declare a Codeblock instance
-*2 Initialize
-+ Specify the expression and optional parameters
-+ Compile
-+ Evaluate with or without parameters.
+1. Declare a Codeblock instance
+2. Initialize
+3. Specify the expression and optional parameters
+4. Compile
+5. Evaluate with or without parameters.
 
 
 ```vbnet
