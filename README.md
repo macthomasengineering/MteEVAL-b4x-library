@@ -2,7 +2,9 @@
 
 MteEval is a library for compiling and evaluating expressions at runtime. Expressions are converted to bytecode and then executed on demand with a simple virtual machine.
 
-There are three editions of the library: Android (B4A), iOS (B4i), and Java (B4J).  
+There are three editions of the library: Android (B4A), iOS (B4i), and Java (B4J).
+
+[Anywhere Software](https://www.b4x.com/)
 
 ##Usage
 
