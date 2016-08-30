@@ -12,7 +12,7 @@ Evaluating expressions at runtime is a valuable tool to allow formulas and other
 
 ##Usage
 
-MteEval adopts the "code block" format from the venerable 1990's xBase compiler Clipper 5.  A codeblock is a compilable snippet of code.  Codeblocks begin with an open brace, followed by a optional parameter section couched between pipe symbols, the expression, then ends with a closing brace.
+MteEval adopts the "code block" format for expressions from the venerable 1990's xBase compiler Clipper 5.  A codeblock is a compilable snippet of code.  Codeblocks begin with an open brace, followed by a optional parameter section couched between pipe symbols, the expression, then ends with a closing brace.
 
 ```clipper
 {|<parameters>|<expression>}
