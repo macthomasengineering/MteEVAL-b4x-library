@@ -25,7 +25,7 @@ cb.Compile( "{||5 * 3}" )
 Result = cb.Eval           'Result=8
 ```
 
-Example2 : Codeblock with parameters.
+Example 2 : Codeblock with parameters.
 
 ```vbnet
 Dim cb as Codeblock
