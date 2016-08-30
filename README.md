@@ -31,7 +31,7 @@ Area = cb.Eval2( Array( 5, 13 ) )    'Result=65
 ```
 _When you evaluate a Codeblock with parameters, use the Eval2 method._
 
-##Linking
+##Linking to your project
 
 * To use the Android or Java editions, add the .JAR and .XML files to your _Additional Libraries_ folder and check the MteEval library in the Libraries Manager of the IDE.  
 * For iOS, copy the modules Codeblock.bas, Codegen.bas, PCODE.bas, and Run.bas to your project folder or place them in the _Shared Modules_ folder.  Then add the modules to the project through the IDE.
