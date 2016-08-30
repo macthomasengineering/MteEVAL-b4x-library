@@ -6,7 +6,7 @@ There are three editions of the library: Android (B4A), iOS (B4i), and Java (B4J
 
 ##Usage
 
-MteEval adopts the "code block" format for specifying expressions from the venerable 1990's xBase compiler Clipper 5.X.  A codeblock is a compilable snippet of code.  The codeblock begins with an open bracket, followed by a optional parameter section between pipe symbols, the expression, then ends with a closing bracket.
+MteEval adopts the "code block" format from the venerable 1990's xBase compiler Clipper 5.X.  A codeblock is a compilable snippet of code.  The codeblock begins with an open bracket, followed by a optional parameter section between pipe symbols, the expression, then ends with a closing bracket.
 
 ```clipper
 {|<parameters,>|<expression>}
