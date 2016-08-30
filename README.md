@@ -8,7 +8,7 @@ There are three builds of the library available: Android (B4A), iOS (B4i), and J
 
 MteEval adopts the "code block" format from the venerable 1990's xBase compiler Clipper 5.X.
 
-```vbnet
+```clipper
 {|<parameters,>|<expression>}
 ```
 
