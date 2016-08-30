@@ -16,6 +16,8 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 
 Codeblocks are a valuable tool to allow formulas and other calculations to be customized at runtime, which otherwise would require a physical update of the application.
 
+##Example
+
 You only need to compile the Codeblock once.  Once compiled you can evaluate it as many times as needed, all while supplying different parameters. 
 
 Example 1: Codeblock without parameters
