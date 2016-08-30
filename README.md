@@ -14,7 +14,7 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 
 ##Linking
 
-* To use the Android or Java editions, add the .JAR to your project.  
+* To use the Android or Java editions, add the .JAR and .XML files to your Additional Libraries folder and check the library through the Libraries Manager.  
 * For iOS, add the modules Codeblock.bas, Codegen.bas, PCODE.bas, and Run.bas to your project.
 
 
