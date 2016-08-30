@@ -33,8 +33,8 @@ _When you evaluate a Codeblock with parameters, use the Eval2 method._
 
 ##Linking
 
-* To use the Android or Java editions, add the .JAR and .XML files to your _Additional Libraries_ folder and check the library through the Libraries Manager.  
-* For iOS, copy the modules Codeblock.bas, Codegen.bas, PCODE.bas, and Run.bas to your project folder or place them in the _Shared Modules_ folder.
+* To use the Android or Java editions, add the .JAR and .XML files to your _Additional Libraries_ folder and check the MteEval library in the Libraries Manager of the IDE.  
+* For iOS, copy the modules Codeblock.bas, Codegen.bas, PCODE.bas, and Run.bas to your project folder or place them in the _Shared Modules_ folder.  Then add the modules to the project through the IDE.
 
 
 
