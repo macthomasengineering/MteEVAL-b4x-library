@@ -11,7 +11,7 @@ See [Anywhere Software](https://www.b4x.com/) to learn more about the B4A, B4i, 
 MteEval adopts the "code block" format from the venerable 1990's xBase compiler Clipper 5.  A codeblock is a compilable snippet of code.  Codeblocks begin with an open brace, followed by a optional parameter section couched between pipe symbols, the expression, then ends with a closing brace.
 
 ```clipper
-{|[parameters,]|<expression>}
+{|[parameters]|<expression>}
 ```
 
 You only need to compile the Codeblock once.  Once compiled you can evaluate it as many times as needed, all while supplying different parameters. 
