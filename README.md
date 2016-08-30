@@ -9,7 +9,7 @@ There are three builds of the library available: B4A (Android), B4i (iOS), and B
 MteEval adopts the "code block" format from the venerable 1990's xBase compiler Clipper 5.X.
 
 ```
-{|<parameters,>|<expression>}
+**{|<parameters,>|<expression>}
 ```
 
 
