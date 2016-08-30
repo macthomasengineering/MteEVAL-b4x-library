@@ -11,15 +11,8 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 ```clipper
 {|<parameters,>|<expression>}
 ```
-To use a code block: 
 
-1. Declare a Codeblock instance
-2. Initialize
-3. Specify the expression and optional parameters
-4. Compile
-5. Evaluate with or without parameters.
-
-Codeblock without parameters:
+Example 1: Codeblock without parameters
 
 ```vbnet
 Dim cb as Codeblock
@@ -27,7 +20,8 @@ cb.Initialize
 cb.Compile( "{||5 * 3}" )
 Result = cb.Eval           'Result=8
 ```
-Codeblock with parameters:
+
+Example2 : Codeblock with parameters.
 
 When you evaluate a Codeblock with parameters, use the Eval2 method.
 
