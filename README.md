@@ -12,6 +12,8 @@ MteEval adopts the "code block" format from the venerable 1990's xBase compiler 
 {|<parameters,>|<expression>}
 ```
 
+You only need to compile the Codeblock once.  Once compiled you can evaluate as many times as needed, all while supplying different parameters as applicable. 
+
 Example 1: Codeblock without parameters
 
 ```vbnet
