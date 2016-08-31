@@ -55,11 +55,11 @@ Commission3 = cb.Eval2( Array( 320000, .08, .05 ) )    'Commission2=36600
 
 The library supports C/Java style operators along side a growing list of B4X native functions.
 
-Math operators: +-*/%
-Relational: > < >= <= != ==
-Logical: || && !
-Bitwise: << >> & ^ |
-Functions: abs(), iif(), min(), max(), sqrt(), power()
+* Math operators: +-*/%
+* Relational: > < >= <= != ==
+* Logical: || && !
+* Bitwise: << >> & ^ |
+* Functions: abs(), iif(), min(), max(), sqrt(), power()
 
 ##Linking to your project
 
