@@ -41,7 +41,7 @@ Area = cb.Eval2( Array( 3, 17 ) )    'Area=51
 ```
 _When evaluating a Codeblock with parameters, you use the Eval2 method._
 
-Example 3: Compile, Eval and repeat
+Example 3: Codeblock compile, eval and repeat
 
 ```vbnet
 Dim cb as Codeblock
