@@ -49,7 +49,7 @@ cb.Initialize
 cb.Compile( "{|sales,r1,r2| r1*sales + iif( sales > 100000, (sales-100000)*r2, 0 ) }" )
 Commission1 = cb.Eval2( Array( 152000, .08, .05 ) )    'Commission1=14760
 Commission2 = cb.Eval2( Array( 186100, .08, .07 ) )    'Commission2=20915
-Commission3 = cb.Eval2( Array( 320000, .08, .05 ) )    'Commission2=36600
+Commission3 = cb.Eval2( Array( 320000, .08, .05 ) )    'Commission3=36600
 ```
 ##Operator support
 
