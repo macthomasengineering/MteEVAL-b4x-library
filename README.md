@@ -20,7 +20,7 @@ MteEval adopts the "code block" format for expressions from the venerable 1990's
 
 ##Example
 
-Note, you only need to compile a Codeblock once.  Once compiled you can evaluate it as many times as needed, all while supplying different parameter values. 
+You only need to compile a Codeblock once.  Once compiled you can evaluate it as many times as needed, all while supplying different parameter values. 
 
 Example 1: Codeblock without parameters
 
