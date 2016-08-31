@@ -22,7 +22,7 @@ MteEval adopts the "code block" format for expressions from the venerable 1990's
 
 Note, you only need to compile a Codeblock once.  Once compiled you can evaluate it as many times as needed, all while supplying different parameter values. 
 
-Example 1: Codeblock without parameters.
+Example 1: Codeblock without parameters
 
 ```vbnet
 Dim cb as Codeblock
@@ -31,7 +31,7 @@ cb.Compile( "{||5 * 3}" )
 Result = cb.Eval           'Result=8
 ```
 
-Example 2 : Codeblock with parameters.
+Example 2 : Codeblock with parameters
 
 ```vbnet
 Dim cb as Codeblock
@@ -40,6 +40,17 @@ cb.Compile( "{|length,width|length*width}" )
 Area = cb.Eval2( Array( 3, 17 ) )    'Area=51
 ```
 _When you evaluate a Codeblock with parameters, use the Eval2 method._
+
+Example 3 : Compile, Eval and repeat
+
+```vbnet
+Dim cb as Codeblock
+cb.Initialize
+cb.Compile( "{|sales,r1,r2| r1*sales + iif( sales > 100000, (sales-100000)*r2, 0 ) }" )
+Commission1 = cb.Eval2( Array( 152000, .08, .05 ) )    'Commission1=14760
+Commission2 = cb.Eval2( Array( 186100, .08, .07 ) )    'Commission2=20915
+Commission3 = cb.Eval2( Array( 320000, .08, .05 ) )    'Commission2=36600
+```
 
 ##Operator support
 
