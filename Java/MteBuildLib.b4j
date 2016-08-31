@@ -20,7 +20,7 @@ Library2=javaobject
 	#CommandLineArgs:
 	#MergeLibraries: True 
 	
-	#LibraryVersion: 1.02
+	#LibraryVersion: 1.03
 	#LibraryName: MteEval
 	#LibraryAuthor: MacThomas Engineering
 
@@ -46,24 +46,25 @@ End Sub
 '*
 Private Sub RunTests
     Private cb As Codeblock
-
 	cb.Initialize
 
 	Log("-------------------------------")
 	Log("MteEval Library v" & cb.Version )
 	Log("-------------------------------")
 	
-	DoTest( 1, "Add and Subtract", "{||5+6-3}",  Array () )
-	DoTest( 2, "Divide By Zero", "{||5+6/0}",  Array () )
-	DoTest( 3, "Cirumference of circle, radius=5", "{|r|2*CPi*r}",  Array (5) )
-	DoTest( 4, "Area of circle, radius=5", "{|r|CPi*(r*r)}",  Array (5) )
-	DoTest( 5, "Missing parenthesis", "{||35*3+6)}",  Array (5) )
-	DoTest( 6, "Min with iif()", "{|a,b| iif( a > b, b, a) }",  Array (5,10) )
-	DoTest( 7, "Find length of diagonal", "{|a,b| sqrt(a*a+b*b)}",  Array (7,9) )
-	DoTest( 8, "Report e", "{|| ce }", Array() )
-	DoTest( 9, "Kitchen Sink", "{|a,b,c,d,e,f|-abs(iif(a+c*f <= e/d*a, iif( min(a,d) >= max(c,e), b*b, c*c ), iif( 5 == c || 5 == e || 77 > 22 && !(10 < 3), Sqrt(c), Sqrt(d))))}", Array ( 34, 43, 17, 25,45, 13) ) 
-	DoTest( 10, "Sequence test", "{|| iif( 7 > 6, (1,2,3,4,5), (10,11,12)) }", Array () )
-	DoTest( 11, "Bitwise operators Syntax Error", "{|r,g,b|((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff)}",  Array (55,32,16) )
+	DoTest(   1, "Add and Subtract", "{||5+6-3}",  Array () )
+	DoTest(   2, "Divide By Zero", "{||5+6/0}",  Array () )
+	DoTest(   3, "Cirumference of circle, radius=5", "{|r|2*CPi*r}",  Array (5) )
+	DoTest(   4, "Area of circle, radius=5", "{|r|CPi*(r*r)}",  Array (5) )
+	DoTest(   5, "Missing parenthesis", "{||35*3+6)}",  Array (5) )
+	DoTest(   6, "Min with iif()", "{|a,b| iif( a > b, b, a) }",  Array (5,10) )
+	DoTest(   7, "Find length of diagonal", "{|a,b| sqrt(a*a+b*b)}",  Array (7,9) )
+	DoTest(   8, "Report e", "{|| ce }", Array() )
+	DoTest(   9, "Kitchen Sink", "{|a,b,c,d,e,f|-abs(iif(a+c*f <= e/d*a, iif( min(a,d) >= max(c,e), b*b, c*c ), iif( 5 == c || 5 == e || 77 > 22 && !(10 < 3), Sqrt(c), Sqrt(d))))}", Array ( 34, 43, 17, 25,45, 13) ) 
+	DoTest(  10, "Sequence test", "{|| iif( 7 > 6, (1,2,3,4,5), (10,11,12)) }", Array () )
+    DoTest(  11, "Bitwise operators", "{|r,g,b|((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff)}",  Array (178,255,102) )
+	DoTest(  12, "Bit Not", "{|| ~0x6B2}",  Array () )
+	DoTest(  13, "Commission", "{|sales,r0,r1,r2| r0*sales + iif( sales > 200000, (sales-200000)*r2 + r1*100000,  iif( sales > 100000, (sales-100000)*r1, 0 )  ) }",  Array (320000,.08, .05, .03) )
 
  End Sub
  
@@ -72,41 +73,28 @@ Private Sub RunTests
 '* DoTest - Compile and run test case
 '*
 '*
- Private Sub DoTest ( nTestNumber As Int, sDescription As String, sCodeblockText As String, aArgs() As Object )
+ Private Sub DoTest ( nTestNumber As Int, sDescription As String, sCodeblockText As String, aArgs() As Object ) As Double
 	Private cb As Codeblock
 	Private nResult As Double
 
-
+	cb.Initialize
+	
+	' Test description
 	Log( "*********************************")
 	Log( nTestNumber & " - " & sDescription )
 	Log( "Codeblock=" & sCodeblockText	)
 		
-	cb.Initialize
+
+	' Compile and report error ( if any )		 
 	cb.Compile( sCodeblockText )	
 	If ( cb.Error <> cb.ERROR_NONE ) Then 
 		Log( "Compile error=" & cb.Error )
 		Log( "Error Description: " & cb.ErrorDesc)
 		Log( "Error Detail: " & cb.ErrorDetail )
-		Return		
+		Return	(0)
 	End If
 	Log( "Codeblock compiled.")
 
-	If ( aArgs.Length = 0 ) Then 
-		nResult = cb.Eval
-	Else 
-		nResult = cb.Eval2( aArgs )	
-	End If
-
-	Log( "Codeblock executed.")
-	Log( "Result=" & nResult ) 
-	
-	If ( cb.Error <> cb.ERROR_NONE ) Then 
-		Log( "Eval error=" & cb.Error )
-		Log( "Error Description: " & cb.ErrorDesc)
-		Log( "Error Detail: " & cb.ErrorDetail )
-	End If
-    
-	
 	' Decompile?
 	If ( bDoDecompile ) Then 
 	
@@ -120,6 +108,25 @@ Private Sub RunTests
 
 	End If
 	
-	Return 
+	' Evaluate Codeblock
+	If ( aArgs.Length = 0 ) Then 
+		nResult = cb.Eval
+	Else 
+		nResult = cb.Eval2( aArgs )	
+	End If
+
+	' Show results
+	Log( "Codeblock executed.")
+	'Log( "Result=" & nResult )
+	Log( "Result=" & nResult & ",  Result in Hex=" & Bit.ToHexString( nResult).ToUpperCase ) 
+
+	' Report error
+	If ( cb.Error <> cb.ERROR_NONE ) Then 
+		Log( "Eval error=" & cb.Error )
+		Log( "Error Description: " & cb.ErrorDesc)
+		Log( "Error Detail: " & cb.ErrorDetail )
+	End If
+	
+	Return ( nResult ) 
 
 End Sub 

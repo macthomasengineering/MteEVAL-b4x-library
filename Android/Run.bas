@@ -87,6 +87,7 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 	Private nSP=0 As Int                         ' Stack pointer
 	Private aStack( STACK_SIZE ) As Double       ' Stack
 	Private aVarMemory( MEMORY_SIZE )  As Double ' Variable memory
+	Private iStackVal, iAX As Int
 	
 	 ' Get parameter count
 	 nParamCount = Code.Get( CODE_HEADER_PARAM_COUNT ) 
@@ -172,14 +173,31 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 
 		Case PCODE.MODULO
 #If B4I	
-			Private nTStack, nTAX As Int
-			nTStack = aStack(nSP)
-			nTAX = nAX 
-			nAX =  nTStack Mod nTAX 
+			' Cast to int
+			iStackVal = aStack(nSP)
+			iAX = nAX 
+			nAX =  iStackVal Mod iAX
 #else
 			nAX = aStack( nSP ) Mod  nAX 
 #end if
 			nSP = nSP - 1                       ' pop
+
+		Case PCODE.LOGICAL_OR
+
+			' A > 0 or B > 0
+			If ( ( aStack( nSP ) > 0 ) Or ( nAX > 0 ) ) Then nAX = 1 Else nAX = 0
+			nSP = nSP - 1 
+
+		Case PCODE.LOGICAL_AND
+			
+			' A > 0 And B > 0
+			If ( ( aStack( nSP ) > 0 ) And ( nAX > 0 ) ) Then nAX = 1 Else nAX = 0
+			nSP = nSP - 1 
+
+		Case PCODE.LOGICAL_NOT
+			
+			' !( A )
+			If (nAX = 0 ) Then nAX = 1 Else 	nAX = 0				
 
         Case PCODE.EQUAL
 
@@ -211,23 +229,59 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 			If  ( aStack( nSP ) >=  nAX ) Then nAX = 1 Else nAX = 0
 			nSP = nSP - 1 
 
-		Case PCODE.LOGICAL_OR
-
-			' A > 0 or B > 0
-			If ( ( aStack( nSP ) > 0 ) Or ( nAX > 0 ) ) Then nAX = 1 Else nAX = 0
-			nSP = nSP - 1 
-
-		Case PCODE.LOGICAL_AND
+        Case PCODE.BIT_AND
 			
-			' A > 0 And B > 0
-			If ( ( aStack( nSP ) > 0 ) And ( nAX > 0 ) ) Then nAX = 1 Else nAX = 0
-			nSP = nSP - 1 
+			' Cast to int
+			iStackVal = aStack(nSP) 
+			iAX = nAX 							
 
-		Case PCODE.LOGICAL_NOT
+			nAX = Bit.And( iStackVal, iAX  )
+			nSP = nSP - 1                     ' pop
+
+        Case PCODE.BIT_OR
 			
-			' !( A )
-			If (nAX = 0 ) Then nAX = 1 Else 	nAX = 0				
+			' Cast to int
+			iStackVal = aStack(nSP) 
+			iAX = nAX 							
+
+			nAX = Bit.Or( iStackVal, iAX )
+			nSP = nSP - 1                     ' pop
+        
+		Case PCODE.BIT_XOR
 			
+			' Cast to int
+			iStackVal = aStack(nSP) 
+			iAX = nAX 							
+
+			nAX = Bit.XOr( iStackVal, iAX  )
+			nSP = nSP - 1                     ' pop
+
+		Case PCODE.BIT_NOT
+			
+			' Cast to int
+			iAX = nAX 							
+
+			nAX = Bit.Not( iAX )
+			nSP = nSP - 1                     ' pop
+			
+		Case PCODE.BIT_SHIFT_LEFT
+			
+			' Cast to int
+			iStackVal = aStack(nSP) 
+			iAX = nAX 							
+
+			nAX = Bit.ShiftLeft(iStackVal, iAX  )
+			nSP = nSP - 1                     ' pop
+
+		Case PCODE.BIT_SHIFT_RIGHT
+			
+			' Cast to int
+			iStackVal = aStack(nSP) 
+			iAX = nAX 							
+
+			nAX = Bit.ShiftRight( iStackVal, iAX )
+			nSP = nSP - 1                     ' pop
+				
 		Case PCODE.JUMP_ALWAYS
 
 			nIP = nIP + Code.Get( nIP + 1 )
@@ -281,6 +335,11 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 			nValue = aStack( nSP )               ' get arg 
 			nSP = nSP - 1                        ' pop stack
 			nAX = Sqrt( nValue )                 ' call func
+
+		Case PCODE.FUNC_POWER
+
+			nAX = Power(aStack(nSP - 1), aStack( nSP ))   ' get arg1 and arg2
+			nSP = nSP - 2                                 ' pop stack
 
 		Case PCODE.ENDCODE
 
@@ -359,6 +418,12 @@ Private Sub SetError( oCodeBlock As Codeblock, nError As Int, sDetail As String 
 	
 End Sub
 
+
+'***************************************************************************
+'* 
+'* Decompiler
+'* 
+'***************************************************************************
 
 '*-------------------------------------------------------------- Dump
 '*
@@ -466,6 +531,35 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 			Decode.Add(pad( nIP, "ge", "stack[sp] >= ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
+        Case PCODE.BIT_AND
+
+			Decode.Add(pad( nIP, "bitand", "stack[sp] & ax"))
+			Decode.Add(pad( nIP, "pop", ""))
+
+        Case PCODE.BIT_OR
+
+			Decode.Add(pad( nIP, "bitor", "stack[sp] | ax"))
+			Decode.Add(pad( nIP, "pop", ""))
+
+        Case PCODE.BIT_XOR
+
+			Decode.Add(pad( nIP, "bitxor", "stack[sp] ^ ax"))
+			Decode.Add(pad( nIP, "pop", ""))
+
+        Case PCODE.BIT_NOT
+
+			Decode.Add(pad( nIP, "bitnot", "~ ax"))
+
+        Case PCODE.BIT_SHIFT_LEFT
+
+			Decode.Add(pad( nIP, "bitlft", "stack[sp] << ax"))
+			Decode.Add(pad( nIP, "pop", ""))
+
+        Case PCODE.BIT_SHIFT_RIGHT
+
+			Decode.Add(pad( nIP, "bitrgt", "stack[sp] >> ax"))
+			Decode.Add(pad( nIP, "pop", ""))
+
 		Case PCODE.LOGICAL_OR
 
 			Decode.Add(pad( nIP, "or", "stack[sp] || ax"))
@@ -532,6 +626,11 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 			Decode.Add(pad( nIP, "call", "sqrt"))
 			Decode.Add(pad( nIP, "pop", ""))
 
+		Case PCODE.FUNC_POWER
+
+			Decode.Add(pad( nIP, "call", "power"))
+			Decode.Add(pad( nIP, "pop", "2"))
+
 		Case PCODE.ENDCODE
 
 			Decode.Add(pad( nIP, "end", ""))
@@ -561,9 +660,6 @@ Private Sub pad( nIP As Int, sInstruct As String, sOperands As String ) As Strin
 	
 	sIpWithPad = nIP & ":          "
 	sInstructWithPad = sInstruct &  "          "
-	
-	'Log( "IPLen=" & sIpWithPad.SubString2(0, 7).Length )
-	'Log( "InstLen=" & sInstructWithPad.SubString2(0,8).Length )
 
 	Return ( sIpWithPad.SubString2(0, 7) & sInstructWithPad.SubString2(0,8) & sOperands )
 	

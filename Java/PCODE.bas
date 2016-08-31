@@ -69,15 +69,23 @@ Sub Process_Globals
 	Public Const LESS_EQUAL    = 16 As Int
 	Public Const GREATER_THAN  = 17 As Int
 	Public Const GREATER_EQUAL = 18 As Int
-
+	
+	' Bitwise
+	Public Const BIT_AND         = 21 As Int
+	Public Const BIT_OR          = 22 As Int
+	Public Const BIT_XOR         = 23 As Int
+	Public Const BIT_NOT         = 24 As Int
+	Public Const BIT_SHIFT_LEFT  = 25 As Int
+	Public Const BIT_SHIFT_RIGHT = 26 As Int
+	
 	' Jumps
-	Public Const JUMP_ALWAYS   = 20 As Int 
-	Public Const JUMP_FALSE    = 21 As Int 
-	Public Const JUMP_TRUE     = 22 As Int 
+	Public Const JUMP_ALWAYS   = 30 As Int 
+	Public Const JUMP_FALSE    = 31 As Int 
+	Public Const JUMP_TRUE     = 32 As Int 
 
 	' Loaders
-	Public Const LOADCONST     = 30 As Int
-	Public Const LOADVAR       = 31 As Int
+	Public Const LOADCONST     = 40 As Int
+	Public Const LOADVAR       = 41 As Int
 
 	' Internal functions
 	Public Const FUNC_ABS      = 50 As Int 
@@ -85,7 +93,8 @@ Sub Process_Globals
 	Public Const FUNC_MAX      = 52 As Int
 	Public Const FUNC_MIN      = 53 As Int
 	Public Const FUNC_SQRT     = 54 As Int
-			
+	Public Const FUNC_POWER    = 55 As Int
+				
 	' End code
 	Public Const ENDCODE       = 100 As Int
 			

@@ -48,9 +48,10 @@ B4i=true
 Sub Process_Globals
 
 	' Types
-	Type TOKEN ( nType As Int, sText As String )
-	Type JUMP ( nCodeIndex As Int, nLabelIndex As Int ) 
-	Type FUNC_INFO ( nPcode As Int, nArgCount As Int )  
+	Type MTE_TOKEN ( nType As Int, sText As String )
+	Type MTE_JUMP ( nCodeIndex As Int, nLabelIndex As Int ) 
+	Type MTE_FUNC_INFO ( nPcode As Int, nArgCount As Int )  
+	Type MTE_VARIENT ( nType As Int,  vDouble As Double, vInt As Int, vBoolean As Boolean, vString As String )
 
 	Private gCodeBlock  As Codeblock
 	Private gBytecode   As List 
@@ -59,15 +60,15 @@ Sub Process_Globals
 	Private gParamExpr  As String
 	Private gEvalExpr   As String 
 	Private gTokenList  As List
-	Private gToken      As TOKEN
+	Private gToken      As MTE_TOKEN
 	Private gTokenIndex     As Int 
 	Private gTokenEndIndex  As Int 
-	Private gFuncInfo       As FUNC_INFO
+	Private gFuncInfo       As MTE_FUNC_INFO
 	Private gPutBackCount   As Int 
 	Private gPutBackIndex   As Int 
 	
 	' Jump table
-	Private gJumpTable(20) As JUMP
+	Private gJumpTable(20) As MTE_JUMP
 	Private gJumpCount=0 As Int 
 	
 	' Labels
@@ -116,6 +117,41 @@ Sub Process_Globals
 	' Bit.ParseInt conversion
 	Private Const HEX2DECIMAL=16 As Int
 
+
+End Sub
+
+'*--------------------------------------------------------- FindInternalFunc
+'* 
+Private Sub FindInternalFunc( sName As String ) As MTE_FUNC_INFO
+	Private tFuncInfo As MTE_FUNC_INFO
+
+	tFuncInfo.Initialize
+	
+	Select ( sName ) 
+	Case "abs" 
+		tFuncInfo.nPcode = PCODE.FUNC_ABS					
+		tFuncInfo.nArgCount = 1
+	Case "iif", "if" 
+		tFuncInfo.nPcode = PCODE.FUNC_IIF
+		tFuncInfo.nArgCount = 3
+	Case "max"
+		tFuncInfo.nPcode = PCODE.FUNC_MAX		
+		tFuncInfo.nArgCount = 2
+	Case "min"
+		tFuncInfo.nPcode = PCODE.FUNC_MIN
+		tFuncInfo.nArgCount = 2
+	Case "sqrt"
+		tFuncInfo.nPcode = PCODE.FUNC_SQRT
+		tFuncInfo.nArgCount = 1
+	Case "power"
+		tFuncInfo.nPcode = PCODE.FUNC_POWER
+		tFuncInfo.nArgCount = 2
+	Case Else 
+		tFuncInfo.nPcode    = -1 				
+		tFuncInfo.nArgCount = 0
+	End Select
+
+	Return ( tFuncInfo )
 
 End Sub
 
@@ -599,8 +635,17 @@ Private Sub GetToken As Int
 
 	End If
 
+	' Bit Shift operator?
+	If ( Regex.IsMatch("<<|>>", sMatch)  = True ) Then 
+		
+		gToken.sText = sMatch
+		gToken.nType = TOKEN_TYPE_DELIMITER
+		Return ( gToken.nType )
+
+	End If
+
 	' General Delimeter? Note: equals removed
-	If ( Regex.IsMatch("[+\-*^/%(),!|]", sMatch)  = True ) Then 
+	If ( Regex.IsMatch("[+\-*^/%(),!|~]", sMatch)  = True ) Then 
 	
 		gToken.sText = sMatch
 		gToken.nType = TOKEN_TYPE_DELIMITER
@@ -734,7 +779,7 @@ Private Sub EvalLogicalAnd As Boolean
 	Private bSuccess As Boolean
 
 	' Next higher precedence		
-	bSuccess = EvalBitwise
+	bSuccess = EvalBitwiseAndOrXor
 	If ( bSuccess = ABORT  ) Then Return ( ABORT )
 	
 	' Save operator on local stack
@@ -753,7 +798,7 @@ Private Sub EvalLogicalAnd As Boolean
 		Push
 		GetToken 
 		
-		bSuccess = EvalBitwise
+		bSuccess = EvalBitwiseAndOrXor
 		If ( bSuccess = ABORT  ) Then Return ( ABORT )
 	
 		' Gen code
@@ -773,25 +818,45 @@ End Sub
 
 '*---------------------------------------------------------------- EvalBitwise
 '*
-Private Sub EvalBitwise As Boolean
+Private Sub EvalBitwiseAndOrXor As Boolean
 	Private sOperator As String 
 	Private bSuccess As Boolean 
 
+	' Next higher precedence	
     bSuccess = EvalRelational
-	If ( bSuccess = ABORT ) Then Return ( ABORT ) 
+	If ( bSuccess = ABORT ) Then Return ( ABORT )
+	
+	' Store operator on local stack
+	sOperator = gToken.sText
 
-	sOperator = gToken.sText 
+	' While add or subtract	
+	Do While ( Regex.IsMatch("&|\^|\|", sOperator )  = True )  
 	
-	' Generate error if for unsupported operator ( for now )
-	If ( Regex.IsMatch("&|\^|\|", sOperator )  = True ) Then 
-		SetError2( gCodeBlock.ERROR_UNSUPPORTED_OPER ) 
-		Return ( ABORT )
-	End If
-	
-	Return ( SUCCESS )
-	
-End Sub 
+		' Push on stack and continue
+		Push
+		GetToken
 
+  		bSuccess = EvalRelational
+		If ( bSuccess = ABORT  ) Then Return ( ABORT )
+		
+		' Generate code
+		Select sOperator
+		Case "&"
+			DoBitwiseAnd
+		Case "|"
+			DoBitwiseOr
+		Case "^"
+			DoBitwiseXor
+		End Select
+		
+		' Update operator as token may have changed
+		sOperator = gToken.sText
+		
+	Loop
+	
+	Return ( SUCCESS  )
+
+End Sub	
 
 '*------------------------------------------------------------- EvalRelational
 '*
@@ -807,8 +872,6 @@ Private Sub EvalRelational As Boolean
 	sOperator = gToken.sText 
 	
 	' Relational operator?
-	'If ( Regex.IsMatch("<=|>=|==|<|>|!=|\|\||&&", sOperator )  = True ) Then 
-
 	If ( Regex.IsMatch("<=|>=|==|(?<!:)<(?!<)|(?<!>)>(?!>)|!=|\|\||&&", sOperator )  = True ) Then 
 
 		'Push, get, and do next level
@@ -851,15 +914,30 @@ Private Sub EvalBitShift As Boolean
 
 	sOperator = gToken.sText 
 	
-	' Generate error if for unsupported operator ( for now )
+	' Bit shift?
 	If ( Regex.IsMatch("<<|>>", sOperator )  = True ) Then 
-		SetError2( gCodeBlock.ERROR_UNSUPPORTED_OPER ) 
-		Return ( ABORT )
+
+		'Push, get, and do next level
+		Push
+		GetToken 
+
+		bSuccess = EvalAddSub
+		If ( bSuccess = ABORT  ) Then Return ( ABORT )
+		
+		'Which one? 
+		Select ( sOperator ) 
+		Case "<<"                               
+			DoBitShiftLeft
+		Case ">>"                               
+			DoBitShiftRight
+		End Select
+
 	End If
 	
 	Return ( SUCCESS )
 	
 End Sub 
+
 
 '*----------------------------------------------------------------- EvalAddSub
 '* 
@@ -975,15 +1053,14 @@ Private Sub EvalUnary As Boolean
 	Case "!"
 		DoLogicalNot					
 	Case "~"
-		SetError2( gCodeBlock.ERROR_UNSUPPORTED_OPER )
-		Return ( ABORT )
+		DoBitNot
 	End Select
 
 	Return ( SUCCESS ) 
 	
 End Sub 
 
-'*------------------------------------------------------------------ EvalParen
+'*----------------------------------------------------------------- EvalParen
 '* 
 Private Sub EvalParen() As Boolean
 	Private bSuccess As Boolean
@@ -1286,7 +1363,7 @@ End Sub
 
 '*--------------------------------------------------------- DoCallInternalFunc
 '* 
-Private Sub DoCallInternalFunc( tFuncInfo As FUNC_INFO ) As Boolean
+Private Sub DoCallInternalFunc( tFuncInfo As MTE_FUNC_INFO ) As Boolean
 	Private bSuccess As Boolean
 	
 	'Mtelog.Dbg( "DoInternalFunc")
@@ -1354,9 +1431,6 @@ Private Sub DoIIF As Boolean
 	bSuccess = EvalExpression 
 	If ( bSuccess = ABORT ) Then Return ( ABORT ) 
 			
-	' Push value
-	Push
-
 	' 3. Get next token
 	GetToken			
 	
@@ -1374,9 +1448,6 @@ Private Sub DoIIF As Boolean
 	' Compile Else condition
 	bSuccess = EvalExpression 
 	If ( bSuccess = ABORT ) Then Return ( ABORT )
-	
-	' Push value on stack
-	Push
 
 	' 4. Get Next token
 	GetToken				
@@ -1392,6 +1463,49 @@ Private Sub DoIIF As Boolean
 
 	Return ( SUCCESS )
 			
+End Sub
+
+'*--------------------------------------------------------------------------
+'* 
+Private Sub DoBitwiseAnd 
+	'Mtelog.Dbg( "DoBitwiseAnd()" )
+	EmitShortCode( PCODE.BIT_AND ) 
+End Sub
+
+'*--------------------------------------------------------------------------
+'* 
+Private Sub DoBitwiseOr
+	'Mtelog.Dbg( "DoBitwiseOr()" )
+	EmitShortCode( PCODE.BIT_OR ) 
+End Sub
+
+'*--------------------------------------------------------------------------
+'* 
+Private Sub DoBitwiseXor
+	'Mtelog.Dbg( "DoBitwiseXor()" )
+	EmitShortCode( PCODE.BIT_XOR ) 
+End Sub
+
+
+'*--------------------------------------------------------------------------
+'* 
+Private Sub DoBitShiftLeft
+	'Mtelog.Dbg( "DoBitShiftLeft()" )
+	EmitShortCode( PCODE.BIT_SHIFT_LEFT ) 
+End Sub
+
+'*--------------------------------------------------------------------------
+'* 
+Private Sub DoBitShiftRight
+	'Mtelog.Dbg( "DoBitShiftRight()" )
+	EmitShortCode( PCODE.BIT_SHIFT_RIGHT ) 
+End Sub
+
+'*-----------------------------------------------------------------
+'* 
+Private Sub DoBitNot
+	'Mtelog.Dbg( "DoBitNot()" )
+	EmitShortCode( PCODE.BIT_NOT ) 
 End Sub
 
 
@@ -1682,37 +1796,6 @@ Private Sub DoLogicalAnd
 
 End Sub
 
-'*--------------------------------------------------------- FindInternalFunc
-'* 
-Private Sub FindInternalFunc( sName As String ) As FUNC_INFO
-	Private tFuncInfo As FUNC_INFO
-
-	tFuncInfo.Initialize
-	
-	Select ( sName ) 
-	Case "abs" 
-		tFuncInfo.nPcode = PCODE.FUNC_ABS					
-		tFuncInfo.nArgCount = 1
-	Case "iif", "if" 
-		tFuncInfo.nPcode = PCODE.FUNC_IIF
-		tFuncInfo.nArgCount = 3
-	Case "max"
-		tFuncInfo.nPcode = PCODE.FUNC_MAX		
-		tFuncInfo.nArgCount = 2
-	Case "min"
-		tFuncInfo.nPcode = PCODE.FUNC_MIN
-		tFuncInfo.nArgCount = 2
-	Case "sqrt"
-		tFuncInfo.nPcode = PCODE.FUNC_SQRT
-		tFuncInfo.nArgCount = 1
-	Case Else 
-		tFuncInfo.nPcode    = -1 				
-		tFuncInfo.nArgCount = 0
-	End Select
-
-	Return ( tFuncInfo )
-
-End Sub
 
 '*------------------------------------------------------------ FindParameter
 '* 
@@ -1787,8 +1870,8 @@ Private Sub SetError( nError As Int, sDetail As String )  As Int
 	gCodeBlock.ErrorDesc = sDesc
 	gCodeBlock.ErrorDetail = sDetail
 
-	''Mtelog.Console( "Error: nError=" & nError & " - " & sDesc )
-	''Mtelog.Console( "Error: " & sDetail )
+	'Mtelog.Console( "Error: nError=" & nError & " - " & sDesc )
+	'Mtelog.Console( "Error: " & sDetail )
 
 	Return ( nError )	
 End Sub
@@ -1845,6 +1928,4 @@ Private Sub SyntaxError( nError As Int )
 	' Set error in codeblock with detail
 	SetError2( nError )
 	
-	
 End Sub
-

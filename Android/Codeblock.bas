@@ -50,6 +50,13 @@ B4A=true
 '*
 '* No.        Who  Date        Description
 '* =====      ===  ==========  ======================================================
+'* 1.03       MTE  2016/08/29  - Added support for bitwise operators << >> ~ ^
+'*                             - Added internal function Power()
+'*                             - Removed Push instructions in DoIIF.  Push was not 
+'*                               needed. This caused the error in the Kitchen Sink test 
+'*                               case.
+'*                             - Prefixed Types with MTE_ to prevent naming conflicts 
+'*                               with Type definitions in applications.
 '* 1.02       MTE  2016/08/26  - Fixed syntax error bug with parenthetical comma
 '*                               expressions 
 '*                             - Moved software CPU to local stack to support Codeblock 
@@ -99,7 +106,7 @@ Sub Class_Globals
 	Public Const ERROR_ARG_NOT_NUMBER    = 25 As Int
 	Public Const ERROR_OTHER             = 33 As Int
 
-	Public Version="1.02" As String
+	Private VersionText="1.03" As String
 	
 End Sub
 
@@ -173,8 +180,6 @@ Public Sub Eval2( aArgs() As Object ) As Double
 	Return ( nResult )
 End Sub
 
-
-
 '-------------------------------------------------
 ' Decompile Codeblock
 '
@@ -190,6 +195,13 @@ Public Sub Decompile As List
 	Return ( Decode )
 End Sub
 
-
+'-------------------------------------------------
+' Version of MteEval library
+'
+'
+'
+Public Sub Version As String
+	Return ( VersionText )
+End Sub
 
 
