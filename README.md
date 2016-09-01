@@ -12,7 +12,7 @@ The ability to create and evaluate expressions at runtime is a powerful tool, al
 
 ##Codeblocks
 
-MteEval adopts the "code block" syntax for expressions from the venerable 1990's xBase compiler Clipper 5.  Codeblocks begin with an open brace, followed by an optional parameter section between pipes, then the expression, and end with a closing brace.
+MteEval implements a single class named Codeblock. MteEval's codeblock inherits the syntax from the venerable 1990's xBase compiler Clipper 5 where the construct originated. Codeblocks begin with an open brace, followed by an optional parameter list between pipes, then the expression, and end with a closing brace.
 
 ```clipper
 {|<parameters>|<expression>}
