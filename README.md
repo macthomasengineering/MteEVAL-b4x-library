@@ -8,7 +8,7 @@ See [Anywhere Software](https://www.b4x.com/) to learn more about B4A, B4i, and 
 
 ##Application
 
-The ability to create and evaluate expressions at runtime is a powerful tool, allowing calculations and program flow to be customized after installation which would otherwise require a physical update or a custom build of an application.  For example, an application designed to manage a sales compensation plan could benefit from runtime expressions, where the end-user may want to modify the plan's formulas by team members, product mixes and sales goals.  
+Creating expressions at runtime is a powerful tool allowing calculations and program flow to be modified after installation, which otherwise would require a physical update or a custom build of an application. For example, any application designed to manage a sales compensation plan could benefit from runtime expressions, where the end-user may want to customize the plan's formulas by team members, product mixes and sales goals.
 
 ##Codeblocks
 
