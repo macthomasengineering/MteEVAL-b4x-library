@@ -94,6 +94,8 @@ Sub Process_Globals
 	Public Const FUNC_MIN      = 53 As Int
 	Public Const FUNC_SQRT     = 54 As Int
 	Public Const FUNC_POWER    = 55 As Int
+	Public Const FUNC_ROUND    = 56 As Int
+	Public Const FUNC_FLOOR    = 57 As Int
 				
 	' End code
 	Public Const ENDCODE       = 100 As Int

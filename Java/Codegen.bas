@@ -146,6 +146,12 @@ Private Sub FindInternalFunc( sName As String ) As MTE_FUNC_INFO
 	Case "power"
 		tFuncInfo.nPcode = PCODE.FUNC_POWER
 		tFuncInfo.nArgCount = 2
+	Case "round"
+		tFuncInfo.nPcode = PCODE.FUNC_ROUND
+		tFuncInfo.nArgCount = 1
+	Case "floor"
+		tFuncInfo.nPcode = PCODE.FUNC_FLOOR
+		tFuncInfo.nArgCount = 1
 	Case Else 
 		tFuncInfo.nPcode    = -1 				
 		tFuncInfo.nArgCount = 0
