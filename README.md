@@ -12,7 +12,7 @@ Creating expressions at runtime is a powerful tool allowing calculations and pro
 
 ##Codeblocks
 
-MteEval implements a single class named Codeblock. MteEval's codeblock inherits the syntax from the venerable 1990's xBase compiler Clipper 5 where the construct originated. Codeblocks begin with an open brace, followed by an optional parameter list between pipes, then the expression, and end with a closing brace.
+MteEval implements a single class named Codeblock. MteEval's codeblock adopts the syntax from the venerable 1990's xBase compiler Clipper 5 where the construct began. Codeblocks start with an open brace, followed by an optional parameter list between pipes, then the expression, and end with a closing brace.
 
 ```clipper
 {|<parameters>|<expression>}
@@ -39,7 +39,7 @@ cb.Initialize
 cb.Compile( "{|length,width|length*width}" )
 Area = cb.Eval2( Array( 3, 17 ) )    'Area=51
 ```
-_When evaluating a Codeblock with parameters, you use the Eval2 method._
+_When evaluating a Codeblock with parameters, use the Eval2 method._
 
 Example 3: Codeblock compile, eval and repeat
 
@@ -59,7 +59,7 @@ The library supports C/Java style operators along side a growing list of B4X nat
 * Relational: > < >= <= != ==
 * Logical: || && !
 * Bitwise: << >> & ^ |
-* Functions: abs(), iif(), min(), max(), sqrt(), power()
+* Functions: abs(), iif(), if(), min(), max(), sqrt(), power()
 
 ##Linking to your project
 
