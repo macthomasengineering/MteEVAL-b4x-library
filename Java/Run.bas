@@ -131,7 +131,7 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 			' Advance stack pointer and store
 			nSP = nSP + 1 
 
-			' Overlfow?				
+			' Overflow?				
 			If ( nSP >= STACK_SIZE ) Then
 				StackOverFlowError( oCodeBlock, nIP, nAX, nSP )
 				Return ( 0 ) 
@@ -340,6 +340,23 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 
 			nAX = Power(aStack(nSP - 1), aStack( nSP ))   ' get arg1 and arg2
 			nSP = nSP - 2                                 ' pop stack
+			
+		
+		Case PCODE.FUNC_ROUND
+			
+			nValue = aStack( nSP )         ' get arg
+			nSP = nSP - 1                  ' pop stack
+			nAX = Round( nValue )          ' call func
+		
+		
+		Case PCODE.FUNC_FLOOR
+			                     
+			nValue = aStack( nSP )                 
+			nSP = nSP - 1                                       
+			nAX = Floor(nValue)      
+		         
+
+			
 
 		Case PCODE.ENDCODE
 
@@ -601,10 +618,10 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 
 		Case PCODE.LOADVAR 
 			Private nVarIndex As Int 
-
 			nIP = nIP + 1
 			nVarIndex = Code.Get( nIP )
 			Decode.Add(pad( nIP-1, "loadv", $"ax, varmem[${ nVarIndex }]"$))
+			
 
 		Case PCODE.FUNC_ABS
 
@@ -630,6 +647,14 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 
 			Decode.Add(pad( nIP, "call", "power"))
 			Decode.Add(pad( nIP, "pop", "2"))
+			
+		Case PCODE.FUNC_ROUND
+			Decode.Add(pad( nIP, "call", "round"))
+			Decode.Add(pad( nIP, "pop", ""))
+			
+		Case PCODE.FUNC_FLOOR
+			Decode.Add(pad( nIP, "call", "floor"))
+			Decode.Add(pad( nIP, "pop", ""))
 
 		Case PCODE.ENDCODE
 
