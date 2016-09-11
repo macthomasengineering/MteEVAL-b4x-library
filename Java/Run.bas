@@ -350,15 +350,13 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 		
 		
 		Case PCODE.FUNC_FLOOR
+			                     
+			nValue = aStack( nSP )                 
+			nSP = nSP - 1                                       
+			nAX = Floor(nValue)      
+		         
+
 			
-			Dim nSPDouble As Double              ' setting an initial value will clear warning #10
-			                                     ' but typecasting requires setting nSP = nSPDouble ???
-												 ' will initializing nSPDouble to 0.0 interfere with the pop stack operation?
-			nValue = aStack( nSPDouble )         ' get arg
-			nSP = nSP - 1                        ' pop stack
-			nSP = nSPDouble                      ' cast to Double for Floor func
-			nAX = Floor(nSPDouble)               ' call func
-	
 
 		Case PCODE.ENDCODE
 
@@ -621,8 +619,9 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 		Case PCODE.LOADVAR 
 			Private nVarIndex As Int 
 			nIP = nIP + 1
-			Decode.Add(pad( nIP-1, "loadv", $"ax, varmem[${ nVarIndex }]"$))
 			nVarIndex = Code.Get( nIP )
+			Decode.Add(pad( nIP-1, "loadv", $"ax, varmem[${ nVarIndex }]"$))
+			
 
 		Case PCODE.FUNC_ABS
 
