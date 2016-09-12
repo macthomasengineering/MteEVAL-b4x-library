@@ -1,5 +1,5 @@
 ﻿Type=StaticCode
-Version=4.2
+Version=4.5
 ModulesStructureVersion=1
 B4J=true
 @EndOfDesignText@
@@ -81,11 +81,11 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 	Private nArgIndex As Int
 	Private bRun=True As Boolean 
 	Private nRetVal=0 As Double
-	Private nValue As Double
+'	Private nValue As Double
 	Private nAX=0 As Double                      ' Accumlator 
 	Private nIP=0 As Int                         ' Instruction pointer
 	Private nSP=0 As Int                         ' Stack pointer
-	Private aStack( STACK_SIZE ) As Double       ' Stack
+	Private aStack( STACK_SIZE + 1 ) As Double   ' Stack, STACK_SIZE + 1 because our stack is one based.
 	Private aVarMemory( MEMORY_SIZE )  As Double ' Variable memory
 	Private iStackVal, iAX As Int
 	
@@ -131,8 +131,8 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 			' Advance stack pointer and store
 			nSP = nSP + 1 
 
-			' Overflow?				
-			If ( nSP >= STACK_SIZE ) Then
+			' Overlfow?				
+			If ( nSP > STACK_SIZE ) Then
 				StackOverFlowError( oCodeBlock, nIP, nAX, nSP )
 				Return ( 0 ) 
 			End If
@@ -316,9 +316,8 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 
 		Case PCODE.FUNC_ABS
 			
-			nValue = aStack( nSP )               ' get arg 
+			nAX = Abs( aStack( nSP ) )           ' call func
 			nSP = nSP - 1                        ' pop stack
-			nAX = Abs( nValue )                  ' call func
 
 		Case PCODE.FUNC_MAX
 
@@ -332,9 +331,8 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 
 		Case PCODE.FUNC_SQRT
 
-			nValue = aStack( nSP )               ' get arg 
+			nAX = Sqrt( aStack( nSP ) )          ' call func
 			nSP = nSP - 1                        ' pop stack
-			nAX = Sqrt( nValue )                 ' call func
 
 		Case PCODE.FUNC_POWER
 
@@ -344,18 +342,14 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 		
 		Case PCODE.FUNC_ROUND
 			
-			nValue = aStack( nSP )         ' get arg
-			nSP = nSP - 1                  ' pop stack
-			nAX = Round( nValue )          ' call func
+			nAX = Round( aStack( nSP ) )     ' call func
+			nSP = nSP - 1                    ' pop stack
 		
 		
 		Case PCODE.FUNC_FLOOR
 			                     
-			nValue = aStack( nSP )                 
-			nSP = nSP - 1                                       
-			nAX = Floor(nValue)      
-		         
-
+			nAX = Floor(aStack( nSP ))      
+			nSP = nSP - 1                  ' pop stack
 			
 
 		Case PCODE.ENDCODE
