@@ -27,7 +27,7 @@ Example 1: Codeblock without parameters
 ```vbnet
 Dim cb as Codeblock
 cb.Initialize
-cb.Compile( "{||5 * 3}" )
+cb.Compile( "{||5 + 3}" )
 Result = cb.Eval           'Result=8
 ```
 
