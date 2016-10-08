@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/macthomasengineering/mteeval-b4x-library.png?label=ready&title=Ready)](https://waffle.io/macthomasengineering/mteeval-b4x-library)
 #B4X Expression Compiler and Eval Library
 
 MteEval is a library for compiling and evaluating expressions at runtime. Expressions are converted to bytecode and then executed on demand with a simple virtual machine.
