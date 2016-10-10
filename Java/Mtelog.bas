@@ -267,13 +267,14 @@ End Sub
 '*
 '*
 Private Sub SetDateFormat( sDateFormat As String )
-
+	Private Const NAME_OF_MODULE="mtelog" As String   'ignore
+	
 	If ( NativeMe.IsInitialized = False )  Then 
 		#if B4J
 			NativeMe = Me 
 		#else
 			#if B4A 
-				NativeMe.InitializeStatic(Application.PackageName & ".mte") 
+				NativeMe.InitializeStatic(Application.PackageName & "." & NAME_OF_MODULE ) 
 			#else 
 				NativeMe = Platform not supported
 			#end if 

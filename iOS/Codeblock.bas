@@ -50,15 +50,19 @@ B4i=true
 '*
 '* No.        Who  Date        Description
 '* =====      ===  ==========  ======================================================
-'* 1.03       MTE  2016/08/29  - Added support for bitwise operators << >> ~ ^
+'* 1.04       MTE  2016/10/09  - Added trig functions, round(), floor(), and ceil().
+'*                             - Replaced FindInternalFunc case statement with a
+'*                               lookup table.
+'*                             - Added support for variable assignments.
+'* 1.03       MTE  2016/08/30  - Added support for bitwise operators << >> ~ ^
 '*                             - Added internal function Power()
 '*                             - Removed Push instructions in DoIIF.  Push was not 
 '*                               needed. This caused the error in the Kitchen Sink test 
 '*                               case.
 '*                             - Prefixed Types with MTE_ to prevent naming conflicts 
 '*                               with Type definitions in applications.
-'* 1.02       MTE  2016/08/26  - Fixed syntax error bug with parenthetical comma
-'*                               expressions 
+'* 1.02       MTE  2016/08/26  - Fixed syntax error bug with parenthetical expression
+'*                               lists. 
 '*                             - Moved software CPU to local stack to support Codeblock 
 '*                               nesting
 '*                             - Added support for hexadecimal number format 0xNNNN
@@ -72,6 +76,7 @@ B4i=true
 '*
 '*
 '**********************************************************************************
+
 #End Region
 
 Sub Class_Globals
@@ -106,7 +111,7 @@ Sub Class_Globals
 	Public Const ERROR_ARG_NOT_NUMBER    = 25 As Int
 	Public Const ERROR_OTHER             = 33 As Int
 
-	Private VersionText="1.03" As String
+	Private VersionText="1.04.2" As String
 	
 End Sub
 
@@ -125,9 +130,10 @@ Public Sub Initialize
 End Sub
 
 '-------------------------------------------------
-' Compile expression into Codeblock
+' Compile expression into a Codeblock
 '
 ' Example:  Dim cb as Codeblock
+'           cb.Initialize
 '           error = cb.Compile( "{||3+8}" )
 '
 Public Sub Compile( sCodeblock As String )  As Int
@@ -153,6 +159,7 @@ End Sub
 ' Evaulate a Codeblock
 '
 ' Example:  Dim cb as Codeblock
+'           cb.Initialize
 '           error  = cb.Compile( "{||3+8}" )
 '           result = cb.Eval
 '
@@ -169,6 +176,7 @@ End Sub
 ' Evaulate a Codeblock with parameters
 '
 ' Example:  Dim cb as CodeBlock
+'           cb.Initialize
 '           error = cb.Compile( "{|a,b|3*a+8*b}" )
 '           result = cb.Eval2( Array( 6, 10 ) )
 '
@@ -181,10 +189,11 @@ Public Sub Eval2( aArgs() As Object ) As Double
 End Sub
 
 '-------------------------------------------------
-' Decompile Codeblock
+' Decompile a Codeblock
 '
 ' Example:  Dim cb as CodeBlock
 '           Dim Decode as List
+'           cb.Initialize
 '           error = cb.Compile( "{|a,b|3*a+8*b}" )
 '           Decode = cb.Decompile
 '

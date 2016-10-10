@@ -48,14 +48,16 @@ Sub Process_Globals
 
 	' Stack
 	Public Const PUSH          =  1 As Int
+	Public Const PUSHVAR       =  2 As Int
+	Public Const PUSHCONST     =  3 As Int
 	
 	' Math
-	Public Const NEG           =  2 As Int 
-	Public Const ADD           =  3 As Int 
-	Public Const SUBTRACT      =  4 As Int 
-	Public Const DIVIDE        =  5 As Int 
-	Public Const MULTIPLY      =  6 As Int 
-	Public Const MODULO        =  7 As Int
+	Public Const NEG           =  4 As Int 
+	Public Const ADD           =  5 As Int 
+	Public Const SUBTRACT      =  6 As Int 
+	Public Const DIVIDE        =  7 As Int 
+	Public Const MULTIPLY      =  8 As Int 
+	Public Const MODULO        =  9 As Int
 
 	' Logical
 	Public Const LOGICAL_OR    = 10 As Int
@@ -83,9 +85,10 @@ Sub Process_Globals
 	Public Const JUMP_FALSE    = 31 As Int 
 	Public Const JUMP_TRUE     = 32 As Int 
 
-	' Loaders
+	' Load and store
 	Public Const LOADCONST     = 40 As Int
 	Public Const LOADVAR       = 41 As Int
+	Public Const STOREVAR      = 42 As Int
 
 	' Internal functions
 	Public Const FUNC_ABS      = 50 As Int 
@@ -96,7 +99,20 @@ Sub Process_Globals
 	Public Const FUNC_POWER    = 55 As Int
 	Public Const FUNC_ROUND    = 56 As Int
 	Public Const FUNC_FLOOR    = 57 As Int
-				
+	Public Const FUNC_CEIL     = 58 As Int
+	Public Const FUNC_COS      = 59 As Int
+	Public Const FUNC_COSD     = 60 As Int 
+	Public Const FUNC_SIN      = 61 As Int 
+	Public Const FUNC_SIND     = 62 As Int 
+	Public Const FUNC_TAN      = 63 As Int
+	Public Const FUNC_TAND     = 64 As Int
+	Public Const FUNC_ACOS     = 65 As Int
+	Public Const FUNC_ACOSD    = 66 As Int 
+	Public Const FUNC_ASIN     = 67 As Int 
+	Public Const FUNC_ASIND    = 68 As Int 
+	Public Const FUNC_ATAN     = 69 As Int 
+	Public Const FUNC_ATAND    = 70 As Int 
+
 	' End code
 	Public Const ENDCODE       = 100 As Int
 			

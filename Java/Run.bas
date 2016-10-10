@@ -81,7 +81,6 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 	Private nArgIndex As Int
 	Private bRun=True As Boolean 
 	Private nRetVal=0 As Double
-'	Private nValue As Double
 	Private nAX=0 As Double                      ' Accumlator 
 	Private nIP=0 As Int                         ' Instruction pointer
 	Private nSP=0 As Int                         ' Stack pointer
@@ -100,7 +99,7 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 	
 	' Store parameters
 	If ( nParamCount > 0 ) Then 
-		
+
 		' Store parameter values in variable memory 
 		For nArgIndex = 0 To nParamCount - 1
 			
@@ -109,6 +108,8 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 				SetError( oCodeBlock, oCodeBlock.ERROR_ARG_NOT_NUMBER, "Argument #" & nArgIndex & "not a number." )
 				Return ( 0 ) 		
 			End If
+			
+			' Store value
 			aVarMemory( nArgIndex ) = aArgs( nArgIndex )		
 
 		Next
@@ -141,11 +142,11 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 			
 			'Mtelog.Dbg( "<--- Push AX=" & nAX )
 
-	    Case PCODE.NEG
+		Case PCODE.NEG
 			
 			nAX = - (nAX)
 
-	    Case PCODE.ADD
+		Case PCODE.ADD
 		
 			nAX = aStack( nSP ) + nAX 
 			nSP = nSP - 1                     ' pop
@@ -199,37 +200,37 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 			' !( A )
 			If (nAX = 0 ) Then nAX = 1 Else 	nAX = 0				
 
-        Case PCODE.EQUAL
+		Case PCODE.EQUAL
 
 			If  ( aStack( nSP ) =  nAX ) Then nAX = 1 Else nAX = 0
 			nSP = nSP - 1 
 
-        Case PCODE.NOT_EQUAL
+		Case PCODE.NOT_EQUAL
 
 			If  ( aStack( nSP ) <>  nAX ) Then nAX = 1 Else nAX = 0
 			nSP = nSP - 1 
 
-        Case PCODE.LESS_THAN
+		Case PCODE.LESS_THAN
 
 			If  ( aStack( nSP ) <  nAX ) Then nAX = 1 Else nAX = 0
 			nSP = nSP - 1 
 			
-        Case PCODE.LESS_EQUAL
+		Case PCODE.LESS_EQUAL
 
 			If  ( aStack( nSP ) <=  nAX ) Then nAX = 1 Else nAX = 0
 			nSP = nSP - 1 
 
-        Case PCODE.GREATER_THAN
+		Case PCODE.GREATER_THAN
 
 			If  ( aStack( nSP ) >  nAX ) Then nAX = 1 Else nAX = 0
 			nSP = nSP - 1 
 
-        Case PCODE.GREATER_EQUAL
+		Case PCODE.GREATER_EQUAL
 
 			If  ( aStack( nSP ) >=  nAX ) Then nAX = 1 Else nAX = 0
 			nSP = nSP - 1 
 
-        Case PCODE.BIT_AND
+		Case PCODE.BIT_AND
 			
 			' Cast to int
 			iStackVal = aStack(nSP) 
@@ -238,7 +239,7 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 			nAX = Bit.And( iStackVal, iAX  )
 			nSP = nSP - 1                     ' pop
 
-        Case PCODE.BIT_OR
+		Case PCODE.BIT_OR
 			
 			' Cast to int
 			iStackVal = aStack(nSP) 
@@ -314,44 +315,119 @@ Private Sub ExecuteCode( oCodeBlock As Codeblock, Code As List, aArgs() As Objec
 			' Fetch value from memory
 			nAX = aVarMemory( nVarIndex )
 
+		Case PCODE.STOREVAR
+			Private nVarIndex As Int 
+			
+			' Advance instruction pointer
+			nIP = nIP + 1
+			
+			' Get index into memory block for this var
+			nVarIndex = Code.Get( nIP ) 
+			
+			' Store value into memory
+			aVarMemory( nVarIndex ) = nAX
+
 		Case PCODE.FUNC_ABS
 			
-			nAX = Abs( aStack( nSP ) )           ' call func
+			nAX = Abs( aStack( nSP ) )           ' get arg1 off stack and call abs
 			nSP = nSP - 1                        ' pop stack
+
 
 		Case PCODE.FUNC_MAX
 
-			nAX = Max(aStack(nSP - 1), aStack( nSP ))    ' get arg1 and arg2
+			nAX = Max(aStack(nSP - 1), aStack( nSP ))    ' get arg1 and arg2, call max
 			nSP = nSP - 2                                ' pop stack
 
 		Case PCODE.FUNC_MIN
 
-			nAX = Min(aStack(nSP - 1), aStack( nSP ))   ' get arg1 and arg2
+			nAX = Min(aStack(nSP - 1), aStack( nSP ))   ' get arg1 and arg2 and call min
 			nSP = nSP - 2                               ' pop stack
 
 		Case PCODE.FUNC_SQRT
 
-			nAX = Sqrt( aStack( nSP ) )          ' call func
+			nAX = Sqrt( aStack( nSP ) )          ' get arg1 off stack and call sqrt
 			nSP = nSP - 1                        ' pop stack
 
 		Case PCODE.FUNC_POWER
 
 			nAX = Power(aStack(nSP - 1), aStack( nSP ))   ' get arg1 and arg2
 			nSP = nSP - 2                                 ' pop stack
-			
 		
 		Case PCODE.FUNC_ROUND
 			
-			nAX = Round( aStack( nSP ) )     ' call func
-			nSP = nSP - 1                    ' pop stack
-		
+			nAX = Round( aStack(nSP) )     ' get arg and call func
+			nSP = nSP - 1                  ' pop stack
 		
 		Case PCODE.FUNC_FLOOR
-			                     
-			nAX = Floor(aStack( nSP ))      
-			nSP = nSP - 1                  ' pop stack
-			
 
+			nAX = Floor( aStack(nSP) )     ' get arg and call func
+			nSP = nSP - 1                  ' pop stack
+
+		Case PCODE.FUNC_CEIL
+
+			nAX = Ceil( aStack(nSP) )      ' get arg and call func
+			nSP = nSP - 1                  ' pop stack
+
+		Case PCODE.FUNC_COS
+
+			nAX = Cos( aStack(nSP) )       ' get arg and call func
+			nSP = nSP - 1                  ' pop stack
+	
+		Case PCODE.FUNC_COSD
+
+			nAX = CosD( aStack(nSP) )      ' get arg and call func
+			nSP = nSP - 1                  ' pop stack
+
+		Case PCODE.FUNC_SIN
+
+			nAX = Sin( aStack(nSP) )       ' get arg and call func
+			nSP = nSP - 1                  ' pop stack
+	
+		Case PCODE.FUNC_SIND
+
+			nAX = SinD( aStack(nSP) )      ' get arg and call func
+			nSP = nSP - 1                  ' pop stack
+		
+		Case PCODE.FUNC_TAN
+
+			nAX = Tan( aStack(nSP) )     ' get arg and call func
+			nSP = nSP - 1                ' pop stack
+		
+		Case PCODE.FUNC_TAND
+
+			nAX = TanD( aStack(nSP) )    ' get arg and call func
+			nSP = nSP - 1                ' pop stack
+		
+		Case PCODE.FUNC_ACOS
+
+			nAX = ACos( aStack(nSP) )    ' get arg and call func
+			nSP = nSP - 1                ' pop stack
+		
+		Case PCODE.FUNC_ACOSD
+
+			nAX = ACosD( aStack(nSP) )   ' get arg and call func
+			nSP = nSP - 1                ' pop stack
+		
+		Case PCODE.FUNC_ASIN
+
+			nAX = ASin( aStack(nSP) )    ' get arg and call func
+			nSP = nSP - 1                ' pop stack
+	
+		Case PCODE.FUNC_ASIND
+
+			nAX = ASinD( aStack(nSP) )   ' get arg and call func
+			nSP = nSP - 1                ' pop stack
+		
+		Case PCODE.FUNC_ATAN
+
+			nAX = ATan( aStack(nSP) )    ' get arg and call func
+			nSP = nSP - 1                ' pop stack
+		
+		Case PCODE.FUNC_ATAND
+
+			nAX = ATanD( aStack(nSP) )   ' get arg and call func
+			nSP = nSP - 1                ' pop stack
+		
 		Case PCODE.ENDCODE
 
 			bRun = False
@@ -483,11 +559,11 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 
 			Decode.Add(pad( nIP, "push", "ax" ) )
 
-	    Case PCODE.NEG
+		Case PCODE.NEG
 
 			Decode.Add(pad( nIP, "neg", "ax"))
 
-	    Case PCODE.ADD
+		Case PCODE.ADD
 		
 			Decode.Add(pad( nIP, "add", "stack[sp] + ax" ))
 			Decode.Add(pad( nIP, "pop", ""))
@@ -512,61 +588,61 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 			Decode.Add(pad( nIP, "mod", "stack[sp] % ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
-        Case PCODE.EQUAL
+		Case PCODE.EQUAL
 
 			Decode.Add(pad( nIP, "eq", "stack[sp] == ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
-        Case PCODE.NOT_EQUAL
+		Case PCODE.NOT_EQUAL
 
 			Decode.Add(pad( nIP, "neq", "stack[sp] != ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
-        Case PCODE.LESS_THAN
+		Case PCODE.LESS_THAN
 
 			Decode.Add(pad( nIP, "lt", "stack[sp] < ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 			
-        Case PCODE.LESS_EQUAL
+		Case PCODE.LESS_EQUAL
 
 			Decode.Add(pad( nIP, "le", "stack[sp] <= ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
-        Case PCODE.GREATER_THAN
+		Case PCODE.GREATER_THAN
 
 			Decode.Add(pad( nIP, "gt", "stack[sp] > ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
-        Case PCODE.GREATER_EQUAL
+		Case PCODE.GREATER_EQUAL
 
 			Decode.Add(pad( nIP, "ge", "stack[sp] >= ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
-        Case PCODE.BIT_AND
+		Case PCODE.BIT_AND
 
 			Decode.Add(pad( nIP, "bitand", "stack[sp] & ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
-        Case PCODE.BIT_OR
+		Case PCODE.BIT_OR
 
 			Decode.Add(pad( nIP, "bitor", "stack[sp] | ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
-        Case PCODE.BIT_XOR
+		Case PCODE.BIT_XOR
 
 			Decode.Add(pad( nIP, "bitxor", "stack[sp] ^ ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
-        Case PCODE.BIT_NOT
+		Case PCODE.BIT_NOT
 
 			Decode.Add(pad( nIP, "bitnot", "~ ax"))
 
-        Case PCODE.BIT_SHIFT_LEFT
+		Case PCODE.BIT_SHIFT_LEFT
 
 			Decode.Add(pad( nIP, "bitlft", "stack[sp] << ax"))
 			Decode.Add(pad( nIP, "pop", ""))
 
-        Case PCODE.BIT_SHIFT_RIGHT
+		Case PCODE.BIT_SHIFT_RIGHT
 
 			Decode.Add(pad( nIP, "bitrgt", "stack[sp] >> ax"))
 			Decode.Add(pad( nIP, "pop", ""))
@@ -587,20 +663,19 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 			
 		Case PCODE.JUMP_ALWAYS
 
-			nTarget = nIP +  Code.Get( nIP + 1 )  + 1   ' + 1 needed to for correct location
+			nTarget = nIP +  Code.Get( nIP + 1 )  + 1   ' + 1 needed for correct location
 			Decode.Add(pad( nIP, "jump", nTarget))
 			nIP = nIP + 1
 			
 		Case PCODE.JUMP_FALSE
 
-			nTarget = nIP +  Code.Get( nIP + 1 )  + 1   ' + 1 needed to for correct location
+			nTarget = nIP +  Code.Get( nIP + 1 )  + 1   ' + 1 needed for correct location
 			Decode.Add(pad( nIP, "jumpf", nTarget))
 			nIP = nIP + 1
 			
 		Case PCODE.JUMP_TRUE
-			Private nTarget As Int
 			
-			nTarget = nIP +  Code.Get( nIP + 1 ) + 1   ' + 1 needed to for correct location
+			nTarget = nIP +  Code.Get( nIP + 1 ) + 1   ' + 1 needed for correct location
 			Decode.Add(pad( nIP, "jumpt", nTarget))
 			nIP = nIP + 1
 
@@ -612,10 +687,17 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 
 		Case PCODE.LOADVAR 
 			Private nVarIndex As Int 
+
 			nIP = nIP + 1
 			nVarIndex = Code.Get( nIP )
 			Decode.Add(pad( nIP-1, "loadv", $"ax, varmem[${ nVarIndex }]"$))
-			
+
+		Case PCODE.STOREVAR
+			Private nVarIndex As Int 
+
+			nIP = nIP + 1
+			nVarIndex = Code.Get( nIP )
+			Decode.Add(pad( nIP-1, "storev", $"varmem[${ nVarIndex }], ax"$))
 
 		Case PCODE.FUNC_ABS
 
@@ -650,6 +732,71 @@ Private Sub DumpCode( Code As List, Decode As List ) As Int
 			Decode.Add(pad( nIP, "call", "floor"))
 			Decode.Add(pad( nIP, "pop", ""))
 
+		Case PCODE.FUNC_CEIL
+
+			Decode.Add(pad( nIP, "call", "ceil"))
+			Decode.Add(pad( nIP, "pop", ""))
+
+		Case PCODE.FUNC_COS
+
+			Decode.Add(pad( nIP, "call", "cos"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
+		Case PCODE.FUNC_COSD
+
+			Decode.Add(pad( nIP, "call", "cosd"))
+			Decode.Add(pad( nIP, "pop", ""))
+
+		Case PCODE.FUNC_SIN
+
+			Decode.Add(pad( nIP, "call", "sin"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
+		Case PCODE.FUNC_SIND
+
+			Decode.Add(pad( nIP, "call", "sind"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
+		Case PCODE.FUNC_TAN
+
+			Decode.Add(pad( nIP, "call", "tan"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
+		Case PCODE.FUNC_TAND
+
+			Decode.Add(pad( nIP, "call", "tand"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
+		Case PCODE.FUNC_ACOS
+
+			Decode.Add(pad( nIP, "call", "acos"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
+		Case PCODE.FUNC_ACOSD
+
+			Decode.Add(pad( nIP, "call", "acosd"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
+		Case PCODE.FUNC_ASIN
+
+			Decode.Add(pad( nIP, "call", "asin"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
+		Case PCODE.FUNC_ASIND
+
+			Decode.Add(pad( nIP, "call", "asind"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
+		Case PCODE.FUNC_ATAN
+
+			Decode.Add(pad( nIP, "call", "atan"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
+		Case PCODE.FUNC_ATAND
+
+			Decode.Add(pad( nIP, "call", "atand"))
+			Decode.Add(pad( nIP, "pop", ""))
+		
 		Case PCODE.ENDCODE
 
 			Decode.Add(pad( nIP, "end", ""))

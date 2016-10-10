@@ -92,7 +92,7 @@ Sub Process_Globals
 	Private Const TOKEN_TYPE_STRING=6 As Int             'ignore
 	Private Const TOKEN_TYPE_BLOCK=7 As Int              'ignore
 	Private Const TOKEN_TYPE_UNKNOWN=8 As Int            'ignore
-	Private Const TOKEN_TYPE_FINISHED=9 As Int	         'ignore
+	Private Const TOKEN_TYPE_FINISHED=9 As Int           'ignore
 	Private Const TOKEN_TYPE_HEX_NUMBER=10 As Int        'ignore
 	Private Const NULL_TOKEN=Chr(0) As String
 
@@ -107,7 +107,7 @@ Sub Process_Globals
 	Private Const GROUP_OPEN_PIPE      = 2 As Int  
 	Private Const GROUP_PARAM_EXPR     = 3 As Int
 	Private Const GROUP_CLOSE_PIPE     = 4 As Int  
-    Private Const GROUP_EVAL_EXPR      = 5 As Int
+	Private Const GROUP_EVAL_EXPR      = 5 As Int
 	Private Const GROUP_CLOSE_BRACKET  = 6 As Int  
 
 	' Abort used to unwind the parser when error found
@@ -117,6 +117,57 @@ Sub Process_Globals
 	' Bit.ParseInt conversion
 	Private Const HEX2DECIMAL=16 As Int
 
+	' Internal func table
+	Private aFuncTable() As Object
+	Private mapFuncTable As Map
+	Private bFuncTableLoaded=False As Boolean
+	Private Const FUNC_TABLE_FUNCNAME	= 0 As Int	'ignore
+	Private Const FUNC_TABLE_PCODE		= 1 As Int	'ignore
+	Private Const FUNC_TABLE_ARGCOUNT	= 2 As Int	'ignore
+	
+End Sub
+
+
+'*--------------------------------------------------------- LoadFuncTable
+'* 
+Private Sub LoadFuncTable
+	Private nTableIndex As Int
+	
+	' Table entry format
+	' ------------------
+	' Array( "func", pcode, argcount )
+	
+	' Internal func table
+	aFuncTable = Array( "abs",	  PCODE.FUNC_ABS,	1, _
+			 		    "iif", 	  PCODE.FUNC_IIF,	3, _
+			 		    "if",	  PCODE.FUNC_IIF,	3, _
+			 		    "max",	  PCODE.FUNC_MAX,	2, _
+			 		    "min",	  PCODE.FUNC_MIN,	2, _
+			 		    "sqrt",	  PCODE.FUNC_SQRT,	1, _
+			 		    "power",  PCODE.FUNC_POWER,	2, _
+			 		    "round",  PCODE.FUNC_ROUND,	1, _
+			 		    "floor",  PCODE.FUNC_FLOOR,	1, _
+						"ceil",	  PCODE.FUNC_CEIL,	1, _
+						"cos", 	  PCODE.FUNC_COS,	1, _
+						"cosd",   PCODE.FUNC_COSD,	1, _
+						"sin",    PCODE.FUNC_SIN,	1, _
+						"sind",   PCODE.FUNC_SIND,	1, _
+						"tan",    PCODE.FUNC_TAN,	1, _
+						"tand",   PCODE.FUNC_TAND,	1, _
+						"acos",   PCODE.FUNC_ACOS,	1, _
+						"acosd",  PCODE.FUNC_ACOSD,	1, _
+						"asin",   PCODE.FUNC_ASIN,	1, _
+						"asind",  PCODE.FUNC_ASIND,	1, _
+						"atan",   PCODE.FUNC_ATAN,	1, _
+						"atand",  PCODE.FUNC_ATAND,	1 )
+	
+	' Create map for fast lookup					
+	mapFuncTable.Initialize
+	For nTableIndex = 0 To aFuncTable.Length-3 Step 3
+		mapFuncTable.Put( aFuncTable( nTableIndex + FUNC_TABLE_FUNCNAME ), nTableIndex )
+	Next
+
+	bFuncTableLoaded = True 
 
 End Sub
 
@@ -124,32 +175,22 @@ End Sub
 '* 
 Private Sub FindInternalFunc( sName As String ) As MTE_FUNC_INFO
 	Private tFuncInfo As MTE_FUNC_INFO
-
-	tFuncInfo.Initialize
+	Private nTableIndex As Object
 	
-	Select ( sName ) 
-	Case "abs" 
-		tFuncInfo.nPcode = PCODE.FUNC_ABS					
-		tFuncInfo.nArgCount = 1
-	Case "iif", "if" 
-		tFuncInfo.nPcode = PCODE.FUNC_IIF
-		tFuncInfo.nArgCount = 3
-	Case "max"
-		tFuncInfo.nPcode = PCODE.FUNC_MAX		
-		tFuncInfo.nArgCount = 2
-	Case "min"
-		tFuncInfo.nPcode = PCODE.FUNC_MIN
-		tFuncInfo.nArgCount = 2
-	Case "sqrt"
-		tFuncInfo.nPcode = PCODE.FUNC_SQRT
-		tFuncInfo.nArgCount = 1
-	Case "power"
-		tFuncInfo.nPcode = PCODE.FUNC_POWER
-		tFuncInfo.nArgCount = 2
-	Case Else 
+	' Load lookup table
+	If ( bFuncTableLoaded = False ) Then 
+		LoadFuncTable
+	End If 
+	
+	' Search table for function
+	nTableIndex = mapFuncTable.Get(sName)
+	If ( nTableIndex <> Null ) Then 	
+		tFuncInfo.nPcode    = aFuncTable( nTableIndex + FUNC_TABLE_PCODE )
+		tFuncInfo.nArgCount = aFuncTable( nTableIndex + FUNC_TABLE_ARGCOUNT )
+	Else 	
 		tFuncInfo.nPcode    = -1 				
 		tFuncInfo.nArgCount = 0
-	End Select
+	End If 
 
 	Return ( tFuncInfo )
 
@@ -274,7 +315,7 @@ Private Sub CompileExpression As Int
 End Sub 
 
 
-'*------------------------------------------------------- CompileParameters
+'*--------------------------------------------------------- CompileParameters
 '*
 '* GetToken Advancement
 '* --------------------
@@ -337,6 +378,7 @@ Private Sub CompileParameters As Int
 			' Missed argument?
 			If ( nCommaCount > 0 ) Then 
 				SetError2( gCodeBlock.ERROR_MISSING_PARAM )
+				Exit
 			End If
 
 			' Bump comma count
@@ -379,9 +421,7 @@ Private Sub ExtractExpressions( cb As Codeblock )  As Int
 	Private nGroupCount As Int 
 	Private nError As Int 
 	Private sDetail As String
-#if B4I	
 	Private sGroupText As String
-#end if 
 
 	gEvalExpr = ""
 	gParamExpr = ""
@@ -398,9 +438,7 @@ Private Sub ExtractExpressions( cb As Codeblock )  As Int
 	' Save group count
 	nGroupCount = matchParts.GroupCount 
 
-#if B4I 
 	nGroupCount = nGroupCount - 1 
-#end if	
 
 	' No matches?
 	If ( nGroupCount = 0 ) Then 
@@ -644,8 +682,8 @@ Private Sub GetToken As Int
 
 	End If
 
-	' General Delimeter? Note: equals removed
-	If ( Regex.IsMatch("[+\-*^/%(),!|~]", sMatch)  = True ) Then 
+	' General Delimeter? 
+	If ( Regex.IsMatch("[+\-*^/%(),!|~=]", sMatch)  = True ) Then 
 	
 		gToken.sText = sMatch
 		gToken.nType = TOKEN_TYPE_DELIMITER
@@ -716,8 +754,51 @@ End Sub
 '*
 Private Sub EvalAssignment As Boolean
 	Private bSuccess As Boolean
+	Private nVarIndex As Int
+	Private bSuccess As Boolean
+	Private tSaveToken As MTE_TOKEN
 	
-	' Future assignment support goes here
+	' Possible variable?	
+	If ( gToken.nType = TOKEN_TYPE_IDENTIFIER ) Then 
+	
+		' Look for it
+		nVarIndex = FindParameter( gToken.sText )
+		If ( nVarIndex >= 0 ) Then 
+
+			' Save token
+			tSaveToken.sText = gToken.sText
+			tSaveToken.nType = gToken.nType
+
+			' Assignment operator?		
+			GetToken
+			If ( gToken.sText = "=" ) Then 
+			
+				' Could be a series of assignments
+				GetToken
+				bSuccess = EvalAssignment
+				If ( bSuccess = ABORT ) Then Return ( ABORT )
+									
+					' Store in memory				
+					DoStoreVariable( nVarIndex )
+			
+					' Done
+					Return ( SUCCESS )
+
+			' Not an assignment?
+			Else 
+
+				' Put back in stream
+				PutBack
+		
+				' Restore token
+				gToken.sText = tSaveToken.sText
+				gToken.nType = tSaveToken.nType
+		
+			End If 
+				
+		End If 	
+
+	End If 
 	
 	' Next precedence
 	bSuccess = EvalLogicalOr 
@@ -726,6 +807,7 @@ Private Sub EvalAssignment As Boolean
 	Return ( SUCCESS ) 
 
 End Sub
+
 
 '*-------------------------------------------------------------- EvalLogicalOr
 '*
@@ -829,7 +911,7 @@ Private Sub EvalBitwiseAndOrXor As Boolean
 	' Store operator on local stack
 	sOperator = gToken.sText
 
-	' While add or subtract	
+	' While And, Xor, Or 	
 	Do While ( Regex.IsMatch("&|\^|\|", sOperator )  = True )  
 	
 		' Push on stack and continue
@@ -872,7 +954,7 @@ Private Sub EvalRelational As Boolean
 	sOperator = gToken.sText 
 	
 	' Relational operator?
-	If ( Regex.IsMatch("<=|>=|==|(?<!:)<(?!<)|(?<!>)>(?!>)|!=|\|\||&&", sOperator )  = True ) Then 
+	If ( Regex.IsMatch("<=|>=|==|(?<!:)<(?!<)|(?<!>)>(?!>)|!=", sOperator )  = True ) Then 
 
 		'Push, get, and do next level
 		Push
@@ -909,6 +991,7 @@ Private Sub EvalBitShift As Boolean
 	Private sOperator As String 
 	Private bSuccess As Boolean 
 
+	' Next higher precedence
     bSuccess = EvalAddSub
 	If ( bSuccess = ABORT ) Then Return ( ABORT ) 
 
@@ -937,7 +1020,6 @@ Private Sub EvalBitShift As Boolean
 	Return ( SUCCESS )
 	
 End Sub 
-
 
 '*----------------------------------------------------------------- EvalAddSub
 '* 
@@ -1306,9 +1388,10 @@ Private Sub PutBack As Boolean
 		gPutBackCount = 0
 	End If
 
-	 ' Decrement token index  
-	 gTokenIndex = gTokenIndex - 1 
-	 
+	' Decrement token index  
+	gTokenIndex = gTokenIndex - 1 
+
+		 
 	 Return ( SUCCESS )
 	 
 End Sub
@@ -1526,6 +1609,16 @@ Private Sub DoLoadVariable( nIndex As Int )
 	EmitLongCode( PCODE.LOADVAR, nIndex  ) 
 
 End Sub
+
+'*---------------------------------------------------------- DoStoreVariable
+'*
+Sub DoStoreVariable( nVarIndex As Int  ) 
+
+	'Mtelog.Dbg( "DoStoreVariable") 
+	EmitLongCode( PCODE.STOREVAR, nVarIndex  ) 
+	
+End Sub
+
 
 '*--------------------------------------------------------------------------
 '* 
