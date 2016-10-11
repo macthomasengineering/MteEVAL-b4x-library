@@ -161,7 +161,7 @@ Private Sub LoadFuncTable
 						"asin",   PCODE.FUNC_ASIN,	1, _
 						"asind",  PCODE.FUNC_ASIND,	1, _
 						"atan",   PCODE.FUNC_ATAN,	1, _
-						"atand",  PCODE.FUNC_ATAND,	1 )
+						"atand",  PCODE.FUNC_ATAND,	1)
 	
 	' Create map for fast lookup					
 	mapFuncTable.Initialize
