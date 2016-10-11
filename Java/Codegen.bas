@@ -121,6 +121,8 @@ Sub Process_Globals
 	Private aFuncTable() As Object
 	Private mapFuncTable As Map
 	Private bFuncTableLoaded=False As Boolean
+	
+	' Offsets into func table
 	Private Const FUNC_TABLE_FUNCNAME	= 0 As Int	'ignore
 	Private Const FUNC_TABLE_PCODE		= 1 As Int	'ignore
 	Private Const FUNC_TABLE_ARGCOUNT	= 2 As Int	'ignore
