@@ -60,7 +60,9 @@ The library supports C/Java style operators along side a growing list of B4X nat
 * Relational: > < >= <= != ==
 * Logical: || && !
 * Bitwise: << >> & ^ |
-* Functions: abs(), iif(), if(), min(), max(), sqrt(), power()
+* Assignment: =
+* Functions: abs(), ceil(), floor(), iif(), if(), min(), max(), sqrt(), power(), round()
+* Trig Functions: acos(), acosd(), asin(), asind(), atan(), atand(), cos(), cosd(), sin(), sind(), tan(), tand()
 
 ##Linking to your project
 
