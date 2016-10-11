@@ -50,7 +50,8 @@ B4i=true
 '*
 '* No.        Who  Date        Description
 '* =====      ===  ==========  ======================================================
-'* 1.04       MTE  2016/10/09  - Added trig functions, round(), floor(), and ceil().
+'* 1.04.3     MTE  2016/10/11  - Removed Mtelog from B4J library. B4A and B4I ok.
+'* 1.04.2     MTE  2016/10/09  - Added trig functions, round(), floor(), and ceil().
 '*                             - Replaced FindInternalFunc case statement with a
 '*                               lookup table.
 '*                             - Added support for variable assignments.
@@ -111,7 +112,7 @@ Sub Class_Globals
 	Public Const ERROR_ARG_NOT_NUMBER    = 25 As Int
 	Public Const ERROR_OTHER             = 33 As Int
 
-	Private VersionText="1.04.2" As String
+	Private VersionText="1.04.3" As String
 	
 End Sub
 
