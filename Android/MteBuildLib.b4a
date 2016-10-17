@@ -51,6 +51,7 @@ End Sub
 Sub Activity_Create(FirstTime As Boolean)
 	'Do not forget to load the layout file created with the visual designer. For example:
 	Activity.LoadLayout("Demo")
+	Activity.Title = "MteEval Test"
 
 End Sub
 
@@ -62,7 +63,7 @@ Sub Activity_Pause (UserClosed As Boolean)
 
 End Sub
 
-Sub btnRunTests_Click
+Sub btnRunTest_Click
 	
 	RunTests
 	

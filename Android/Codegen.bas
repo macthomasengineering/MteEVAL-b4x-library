@@ -1784,7 +1784,7 @@ End Sub
 '*--------------------------------------------------------------- FixupJumps
 '*
 Private Sub  FixupJumps 
-	Private i As Int 
+	Private j As Int 
 	Private nCodeIndex As Int
 	Private nJumpToIndex As Int
 	Private nJumpOffset As Int 
@@ -1795,13 +1795,13 @@ Private Sub  FixupJumps
 		
 		' Fix jumps
 		nLastJump = gJumpCount - 1 
-		For i = 0 To nLastJump
+		For j = 0 To nLastJump
 			
 			' This is the location of the jump Pcode
-			nCodeIndex = gJumpTable(i).nCodeIndex
+			nCodeIndex = gJumpTable(j).nCodeIndex
 
 			' This is the index where we want to jump to
-			nJumpToIndex = gLabelTargets( gJumpTable(i).nLabelIndex ) 
+			nJumpToIndex = gLabelTargets( gJumpTable(j).nLabelIndex ) 
 
 			' Calculate the offset 
 			nJumpOffset =  (nJumpToIndex - nCodeIndex) - 1  

@@ -86,7 +86,8 @@ Private Sub RunTests
 '* DoTest - Compile and run test case
 '*
 '*
- Private Sub DoTest ( nTestNumber As Int, sDescription As String, sCodeblockText As String, aArgs() As Object, nExpectedResult  As Double ) As Double
+ Private Sub DoTest ( nTestNumber As Int, sDescription As String, sCodeblockText As String, _
+ 					aArgs() As Object, nExpectedResult  As Double ) As Double
 	Private cb As Codeblock
 	Private nResult As Double
 	Private sTestResult As String
