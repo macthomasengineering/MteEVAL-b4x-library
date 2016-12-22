@@ -21,7 +21,7 @@ MteEval implements a single class named Codeblock. MteEval's codeblock adopts th
 
 ##Examples
 
-You only need to compile a Codeblock once.  Once compiled you can evaluate it as many times as needed, all while supplying different parameter values. 
+You only need to compile a Codeblock once.  Once compiled you can evaluate it as many times as needed, all while supplying different aruguments. 
 
 Example 1: Codeblock without parameters
 
