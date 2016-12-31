@@ -5,7 +5,7 @@ Echo *** MteEvalS2 ***
 Echo ---------------------------------------------------------------------------
 Rem
 Rem slccompiler library projectfolder
-C:\Tools\SimpleLibraryCompiler\B4J_LibraryCompiler.exe MteEvalS2 C:\Data\Mte\Todd\34_EvalX\MteEval\4_Java\Publish2\MteEvalS2_b4a
+C:\Tools\SimpleLibraryCompiler\B4J_LibraryCompiler.exe MteEvalS2 C:\Data\Mte\5_Github\Projects\mteeval105\mteeval-b4x-library\JavaS2
 Rem
 Pause
 popd
