@@ -1,7 +1,7 @@
 [![Stories in Ready](https://badge.waffle.io/macthomasengineering/mteeval-b4x-library.png?label=ready&title=Ready)](https://waffle.io/macthomasengineering/mteeval-b4x-library)
-#B4X Expression Compiler and Eval Library
+#MteEVAL - B4X Expression Compiler and Eval Library
 
-MteEval is a library for compiling and evaluating expressions at runtime. Expressions are converted to bytecode and then executed on demand with a simple virtual machine.
+MteEVAL is a library for compiling and evaluating expressions at runtime. Expressions are converted to bytecode and then executed on demand with a simple virtual machine.
 
 There are four editions of the library: Android (B4A), iOS (B4i), Java (B4J), JavaS2 (B4A/B4J).
 
@@ -15,7 +15,7 @@ Creating expressions at runtime is a powerful tool allowing calculations and pro
 
 ##Codeblocks
 
-MteEval implements a single class named Codeblock. MteEval's codeblock adopts the syntax from the venerable 1990's xBase compiler [Clipper 5](https://en.wikipedia.org/wiki/Clipper_(programming_language)) where the construct began. Codeblocks start with an open brace, followed by an optional parameter list between pipes, then the expression, and end with a closing brace.
+MteEVAL implements a single class named Codeblock. MteEVAL's codeblock adopts the syntax from the venerable 1990's xBase compiler [Clipper 5](https://en.wikipedia.org/wiki/Clipper_(programming_language)) where the construct began. Codeblocks start with an open brace, followed by an optional parameter list between pipes, then the expression, and end with a closing brace.
 
 ```clipper
 {|<parameters>|<expression>}
@@ -68,7 +68,7 @@ The library supports C/Java style operators along side a growing list of B4X nat
 
 ##Linking to your project
 
-* To use the Android or Java editions, add the .JAR and .XML files to your _Additional Libraries_ folder and check the MteEval library in the Libraries Manager of the IDE.  
+* To use the Android or Java editions, add the .JAR and .XML files to your _Additional Libraries_ folder and check the MteEVAL library in the Libraries Manager of the IDE.  
 * For iOS, copy the modules Codeblock.bas, Codegen.bas, PCODE.bas, and Run.bas to your project folder or place them in the _Shared Modules_ folder.  Then add the modules to the project through the IDE.
 
 
