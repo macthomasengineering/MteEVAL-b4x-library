@@ -1,15 +1,14 @@
-﻿Version=4.5
+﻿Version=4.7
 AppType=StandardJava
 NumberOfModules=4
-Module1=Codeblock
-Module2=Codegen
-Module3=Run
-Module4=PCODE
+Module1=Codegen
+Module2=Run
+Module3=PCODE
+Module4=Codeblock
 Build1=Default,com.macthomasengineering.jmteeval
 NumberOfFiles=0
-NumberOfLibraries=2
+NumberOfLibraries=1
 Library1=jcore
-Library2=javaobject
 @EndOfDesignText@
 'Non-UI application (console / server application)
 #Region  Project Attributes 
@@ -19,7 +18,7 @@ Library2=javaobject
 	#CommandLineArgs:
 	#MergeLibraries: True 
 	
-	#LibraryVersion: 1.04
+	#LibraryVersion: 1.06
 	#LibraryName: MteEval
 	#LibraryAuthor: MacThomas Engineering
 
@@ -27,7 +26,7 @@ Library2=javaobject
 
 Sub Process_Globals
 	
-	Private bDoDecompile = False As Boolean
+	Private bDoDecompile = True As Boolean
 		
 End Sub
 
@@ -37,8 +36,6 @@ Sub AppStart (Args() As String)
 	
 End Sub
 
-
-
 '*--------------------------------------------------------------------------
 '*
 '* RunTests - Run test cases
@@ -46,8 +43,9 @@ End Sub
 '*
 Private Sub RunTests
     Private cb As Codeblock
+	
 	cb.Initialize
-
+	
 	#if B4A or B4J
 		'Mtelog.Start
 	#end if		
@@ -55,7 +53,8 @@ Private Sub RunTests
 	Log("-------------------------------")
 	Log("MteEval Library v" & cb.Version )
 	Log("-------------------------------")
-
+	
+ 	DoTest(   0, "Avg test", "{|ref,inp|5+NumberFormat(avg(ref,inp),0,2)}",  Array (56.54,38.33), 52.44 )
   	DoTest(   1, "Add and Subtract", "{||5+6-3}",  Array (), 8 )
 	DoTest(   2, "Divide By Zero", "{||5+6/0}",  Array (), 0 )
 	DoTest(   3, "Cirumference of circle, radius=7", "{|r|2*r*CPi}",  Array (7), 43.98 )
@@ -86,8 +85,7 @@ Private Sub RunTests
 '* DoTest - Compile and run test case
 '*
 '*
- Private Sub DoTest ( nTestNumber As Int, sDescription As String, sCodeblockText As String, _
- 					aArgs() As Object, nExpectedResult  As Double ) As Double
+ Private Sub DoTest ( nTestNumber As Int, sDescription As String, sCodeblockText As String, aArgs() As Object, nExpectedResult  As Double ) As Double
 	Private cb As Codeblock
 	Private nResult As Double
 	Private sTestResult As String
@@ -95,6 +93,9 @@ Private Sub RunTests
 	Private const NO_GROUPING=False As Boolean
 		
 	cb.Initialize
+	
+	' Disable optimizations
+	' cb.DisableOptimizations = True
 	
 	' Test description
 	Log( "*********************************")

@@ -12,7 +12,7 @@ B4i=true
 #Region BSD License
 '**********************************************************************************
 '*
-'* Copyright (c) 2016, MacThomas Engineering
+'* Copyright (c) 2016-2017, MacThomas Engineering
 '* All rights reserved.
 '*
 '* You may use this file under the terms of the BSD license as follows:
@@ -50,9 +50,13 @@ B4i=true
 '*
 '* No.        Who  Date        Description
 '* =====      ===  ==========  ======================================================
-'* 1.04.4     MTE  2016/10/17  - Fixed button name in B4A project.  Should have been 
-'*                               btnRunTest_Click 
-'*                             - Fixed comment in B4J RUN.BAS
+'* 1.06.0     MTE  2017/01/30  - Added peephole optimization to PUSH, LOADVAR, and 
+'*                               LOADCONST
+'*                             - Optimized bytecode and constants into fixed length 
+'*                               arrays
+'*                             - Renumbered pcodes and grouped instructions in Run.bas
+'*                               to workaround B4X select/case performance.
+'*                             - Removed pop instruction from bitwise not
 '* 1.04.3     MTE  2016/10/11  - Removed Mtelog from B4J library. B4A and B4I ok.
 '* 1.04.2     MTE  2016/10/09  - Added trig functions, round(), floor(), and ceil().
 '*                             - Replaced FindInternalFunc case statement with a
@@ -85,12 +89,6 @@ B4i=true
 
 Sub Class_Globals
 
-	Private Bytecode As List 
-	Public Text As String
-	Public Error As Int 
-	Public ErrorDesc As String 
-	Public ErrorDetail As String 
-		
 	' Errors
 	Public Const ERROR_NONE              =  0 As Int
 	Public Const ERROR_SYNTAX            =  1 As Int
@@ -115,7 +113,14 @@ Sub Class_Globals
 	Public Const ERROR_ARG_NOT_NUMBER    = 25 As Int
 	Public Const ERROR_OTHER             = 33 As Int
 
-	Private VersionText="1.04.4" As String
+	Private Code As MTE_CODE
+	Public Text As String
+	Public Error As Int 
+	Public ErrorDesc As String 
+	Public ErrorDetail As String 
+	Public OptimizerEnabled=True As Boolean
+
+	Private VersionText="1.06.0" As String
 	
 End Sub
 
@@ -144,16 +149,16 @@ Public Sub Compile( sCodeblock As String )  As Int
 	Private nResult As Int
 
 	' Reset code and error
-	Bytecode.Initialize
+	Code.Initialize
 	Error = ERROR_NONE
 	ErrorDesc = ""
 	ErrorDetail = "" 
 
 	' Store codeblock in text form 
 	Text = sCodeblock
-
+	
 	' Compile the codeblock		
-	nResult = Codegen.CompileCodeBlock( Me, Bytecode ) 
+	nResult = Codegen.CompileCodeBlock( Me, Code ) 
 		
 	Return ( nResult )		
 	
@@ -171,7 +176,7 @@ Public Sub Eval As Double
 	Private nResult As Double  'ignore
 	Private aArgs() As Object
 	
-	nResult = Run.Execute( Me, Bytecode, aArgs )
+	nResult = Run.Execute( Me, Code, aArgs )
 	
 	Return ( nResult )
 End Sub
@@ -187,7 +192,7 @@ End Sub
 Public Sub Eval2( aArgs() As Object ) As Double
 	Private nResult As Double  'ignore
 	
-	nResult = Run.Execute(  Me, Bytecode, aArgs )
+	nResult = Run.Execute(  Me, Code, aArgs )
 	
 	Return ( nResult )
 End Sub
@@ -204,7 +209,7 @@ End Sub
 Public Sub Decompile As List
 	Private Decode As List
 	Decode.Initialize
-	Run.Dump(  Me, Bytecode, Decode )
+	Run.Dump(  Me, Code, Decode )
 	Return ( Decode )
 End Sub
 
@@ -212,9 +217,37 @@ End Sub
 ' Version of MteEval library
 '
 '
-'
-Public Sub Version As String
+Public Sub getVersion As String
 	Return ( VersionText )
 End Sub
 
+'-------------------------------------------------
+' Optimizer status
+'
+Public Sub getDisableOptimizations As Boolean 
+	Return ( Not( OptimizerEnabled ) )
+End Sub
 
+'-------------------------------------------------
+' Disable or enable the optimizer 
+'
+Public Sub setDisableOptimizations( bDisable As Boolean )
+	OptimizerEnabled = Not( bDisable ) 
+End Sub
+
+
+Public Sub getText As String
+	Return ( Text )
+End Sub
+
+Public Sub getError As Int 
+	Return ( Error )
+End Sub	
+
+Public Sub getErrorDesc As String 
+	Return ( ErrorDesc )
+End Sub
+
+Public Sub getErrorDetail As String 
+	Return ( ErrorDetail )
+End Sub

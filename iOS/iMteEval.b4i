@@ -13,7 +13,7 @@ Library1=icore
 'Code module
 #Region  Project Attributes 
 	#ApplicationLabel: iMteEval Demo
-	#Version: 1.0.4 
+	#Version: 1.0.6 
 	'Orientation possible values: Portrait, LandscapeLeft, LandscapeRight and PortraitUpsideDown
 	#iPhoneOrientations: Portrait, LandscapeLeft, LandscapeRight
 	#iPadOrientations: Portrait, LandscapeLeft, LandscapeRight, PortraitUpsideDown
@@ -73,6 +73,7 @@ Private Sub RunTests
 	Log("MteEval Library v" & cb.Version )
 	Log("-------------------------------")
 
+ 	DoTest(   0, "Avg test", "{|ref,inp|5+NumberFormat(avg(ref,inp),0,2)}",  Array (56.54,38.33), 52.44 )
   	DoTest(   1, "Add and Subtract", "{||5+6-3}",  Array (), 8 )
 	DoTest(   2, "Divide By Zero", "{||5+6/0}",  Array (), 0 )
 	DoTest(   3, "Cirumference of circle, radius=7", "{|r|2*r*CPi}",  Array (7), 43.98 )

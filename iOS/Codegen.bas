@@ -13,7 +13,7 @@ B4i=true
 #Region BSD License
 '**********************************************************************************
 '*
-'* Copyright (c) 2016, MacThomas Engineering
+'* Copyright (c) 2016-2017, MacThomas Engineering
 '* All rights reserved.
 '*
 '* You may use this file under the terms of the BSD license as follows:
@@ -52,18 +52,23 @@ Sub Process_Globals
 	Type MTE_JUMP ( nCodeIndex As Int, nLabelIndex As Int ) 
 	Type MTE_FUNC_INFO ( nPcode As Int, nArgCount As Int )  
 	Type MTE_VARIENT ( nType As Int,  vDouble As Double, vInt As Int, vBoolean As Boolean, vString As String )
+	Type MTE_CODE ( byteCode() As Int, constData() As Double ) 
+		
 
+	' Global reference to Codeblock
 	Private gCodeBlock  As Codeblock
-	Private gBytecode   As List 
 	Private gCodeIndex  As Int
-	Private gCodeBlock  As Codeblock
+
+	' Bytecode, Constants table 
+	Private gBytecode   As List 
+	Private gConstdata  As List 
+	Private gIsPcode    As List 
+	
+	' Parameter and eval expressions
 	Private gParamExpr  As String
 	Private gEvalExpr   As String 
-	Private gTokenList  As List
-	Private gToken      As MTE_TOKEN
-	Private gTokenIndex     As Int 
-	Private gTokenEndIndex  As Int 
-	Private gFuncInfo       As MTE_FUNC_INFO
+	
+	' Putback
 	Private gPutBackCount   As Int 
 	Private gPutBackIndex   As Int 
 	
@@ -81,8 +86,14 @@ Sub Process_Globals
 		
 	' Parenthesis 
 	Private gParenCount As Int 		
+
+	' Token list and navigation
+	Private gTokenList      As List
+	Private gToken          As MTE_TOKEN
+	Private gTokenIndex     As Int 
+	Private gTokenEndIndex  As Int 
 	
-	' Tokens	
+	' Token Types	
 	Private Const TOKEN_TYPE_NONE=0 As Int               'ignore
 	Private Const TOKEN_TYPE_DELIMITER=1 As Int          'ignore
 	Private Const TOKEN_TYPE_IDENTIFIER=2 As Int         'ignore
@@ -96,13 +107,11 @@ Sub Process_Globals
 	Private Const TOKEN_TYPE_HEX_NUMBER=10 As Int        'ignore
 	Private Const NULL_TOKEN=Chr(0) As String
 
-	' v1.01 pattern
-	' Private Const TOKENIZER_MATCH="\(|\)|>=|<=|<>|\|\||&&|!=|==|[+><=*/\-!%,]|[\.\d]+|\b\w+\b" As String
-	
-	' v1.02 pattern	
+	' Expression parsing
 	Private Const TOKENIZER_MATCH="\(|\)|>=|<=|<>|\|\||&&|!=|==|<<|>>|0x[\.\da-z]+|[&\^\|~]|[+><=*/\-!%,]|[\.\d]+|\b\w+\b" As String
-	
 	Private Const CODEBLOCK_MATCH="(\{)?(\|)?([^\|\}]*)(\|)?([^}]*)(\})?" As String
+	
+	' Expression groupw
 	Private Const GROUP_OPEN_BRACKET   = 1 As Int  
 	Private Const GROUP_OPEN_PIPE      = 2 As Int  
 	Private Const GROUP_PARAM_EXPR     = 3 As Int
@@ -118,9 +127,12 @@ Sub Process_Globals
 	Private Const HEX2DECIMAL=16 As Int
 
 	' Internal func table
+	Private gFuncInfo    As MTE_FUNC_INFO
 	Private aFuncTable() As Object
 	Private mapFuncTable As Map
 	Private bFuncTableLoaded=False As Boolean
+	
+	' Offsets into func table
 	Private Const FUNC_TABLE_FUNCNAME	= 0 As Int	'ignore
 	Private Const FUNC_TABLE_PCODE		= 1 As Int	'ignore
 	Private Const FUNC_TABLE_ARGCOUNT	= 2 As Int	'ignore
@@ -159,8 +171,11 @@ Private Sub LoadFuncTable
 						"asin",   PCODE.FUNC_ASIN,	1, _
 						"asind",  PCODE.FUNC_ASIND,	1, _
 						"atan",   PCODE.FUNC_ATAN,	1, _
-						"atand",  PCODE.FUNC_ATAND,	1 )
-	
+						"atand",  PCODE.FUNC_ATAND,	1, _
+						"numberformat", PCODE.FUNC_NUMBER_FORMAT,3, _
+						"avg",  PCODE.FUNC_AVG,	2, _
+						"####",  PCODE.NONE,  	0)
+						 
 	' Create map for fast lookup					
 	mapFuncTable.Initialize
 	For nTableIndex = 0 To aFuncTable.Length-3 Step 3
@@ -201,10 +216,6 @@ End Sub
 '*
 Private Sub ResetCode 
 
-'	' Init table of internal functions	
-'	mapInternalFuncs = CreateMap( "abs" : PCODE.FUNC_ABS,  _    ' revisit
-'	                              "iif" : PCODE.FUNC_IIF   )    
-								  								  
 	' init code index
 	gCodeIndex = 0   ' First item in bytecode is the codeblock parameter count. 
 	                 ' Pcode starts at Bytecode.Get( 1 )
@@ -225,15 +236,19 @@ End Sub
 
 '*--------------------------------------------------------- CompileCodeBlock
 '*
-Public Sub CompileCodeBlock( oCodeBlock As Codeblock, lstBytecode As List ) As Int
+Public Sub CompileCodeBlock( oCodeBlock As Codeblock, Code As MTE_CODE ) As Int
 	Private nError As Int 
 	
 	' Set global reference to the codeblock
 	gCodeBlock = oCodeBlock
 	
-	' Set global reference to Bytecode
-	gBytecode = lstBytecode
-
+	' On first pass, code and constants stored in list 
+	gBytecode.Initialize
+	gConstdata.Initialize
+	
+	' Track location of pcode vs. inline values
+	gIsPcode.Initialize 
+		
 	' Reset code index and tables
 	ResetCode
 		
@@ -262,12 +277,32 @@ Public Sub CompileCodeBlock( oCodeBlock As Codeblock, lstBytecode As List ) As I
 	' If error delete the code
 	If ( nError <> gCodeBlock.ERROR_NONE  ) Then 
 		gBytecode.Initialize
+		Return ( nError ) 
 	End If
+	
+	'---------------------------------------------------
+	' Convert code and constants to fixed length arrays
+	
+	' Convert constant data to array 
+	Private aConstdata( gConstdata.size ) As Double 
+	Private i As Int 
+	For i=0 To gConstdata.Size -1 
+		aConstdata( i ) = gConstdata.Get( i )	
+	Next
+	
+	' Convert bytecode to array 
+	Private aBytecode( gBytecode.size ) As Int
+	For i=0 To gBytecode.Size -1 
+		aBytecode( i ) = gBytecode.Get( i )	
+	Next
+	
+	' Store data and bytecode
+	Code.constData = aConstdata
+	Code.byteCode  = aBytecode
 	
 	Return  ( nError )
 				
 End Sub
-
 
 '***************************************************************************
 '* 
@@ -338,7 +373,7 @@ Private Sub CompileParameters As Int
 	' Reset parameter count
 	gParameterCount = 0
 	
-	' Tokenize argument expression
+	' Tokenize parameter expression
 	gTokenList = Tokenize( gParamExpr )
 
 	' Build table of parameter names
@@ -664,7 +699,7 @@ Private Sub GetToken As Int
 	'Mtelog.Dbg( "sMatch=" & sMatch )
 	'Log( "sMatch=" & sMatch )
 		
-	' Relational operators?
+	' Relational operator?
 	If ( Regex.IsMatch("<=|>=|==|<|>|!=|\|\||&&|&", sMatch)  = True ) Then 
 		
 		gToken.sText = sMatch
@@ -1416,9 +1451,19 @@ End Sub
 Private Sub EmitCodeHeader( nParamCount As Int )
 
 	gBytecode.Add( nParamCount )
+	gIsPcode.Add( False )
 	gCodeIndex = gCodeIndex + 1
 
 End Sub 
+
+'*--------------------------------------------------------------- GetShortCode
+'* 
+Private Sub GetShortCode( nIndex As Int ) As Int
+	Private nPcode As Int 
+	nPcode = gBytecode.Get( nIndex ) 
+	Return ( nPcode ) 
+End Sub
+
 
 '*-------------------------------------------------------------- EmitShortCode
 '* 
@@ -1426,21 +1471,42 @@ Private Sub EmitShortCode( nPcode As Int )
 	
 	' Add instruction
 	gBytecode.Add( nPcode )
+	gIsPcode.Add( True ) 
 	gCodeIndex = gCodeIndex + 1
+		
+End Sub
+
+'*------------------------------------------------------------ EmitShortCodeAt
+'* 
+Private Sub EmitShortCodeAt( nIndex As Int, nPcode As Int )
+	
+	' Change instruction 
+	gBytecode.Set( nIndex, nPcode ) 
 		
 End Sub
 
 '*--------------------------------------------------------------- EmitLongCode
 '* 
-Private Sub EmitLongCode( nPcode As Int, nValue As Double )
+Private Sub EmitLongCode( nPcode As Int, nValue As Int )
 
 	' Add Pcode
 	gBytecode.Add( nPcode )
+	gIsPcode.Add( True )
 	gCodeIndex = gCodeIndex + 1
-	
+
 	' Add value inline
 	gBytecode.Add( nValue ) 
+	gIsPcode.Add( False )
 	gCodeIndex = gCodeIndex + 1
+	
+End Sub
+
+'*---------------------------------------------------------------- AddConstant
+'* 
+Private Sub AddConstant(  nValue As Double ) As Int
+	
+	gConstdata.Add( nValue ) 
+	Return ( gConstdata.Size - 1 ) 
 	
 End Sub
 
@@ -1496,8 +1562,11 @@ Private Sub DoIIF As Boolean
 	If ( bSuccess = ABORT ) Then Return ( ABORT )
 	
 	' Get labels
-	nIfFalse = NewLabel : nEndofIf = nIfFalse 
-
+	nIfFalse = NewLabel 
+	
+	' Always "else" with iif() so no need for this here
+	' nEndofIf = nIfFalse 
+	
 	' 2. Get next token
 	GetToken
 
@@ -1591,13 +1660,16 @@ Private Sub DoBitNot
 	EmitShortCode( PCODE.BIT_NOT ) 
 End Sub
 
-
 '*------------------------------------------------------------- DoLoadNumber
 '* 
  Sub DoLoadNumber( nValue As Double ) 
+	Private nConstIndex As Int 
+	
+	' Add constant to table
+	nConstIndex = AddConstant( nValue ) 
 
 	'Mtelog.Dbg( "DoLoadNumber(), nValue=" & nValue ) 
-	EmitLongCode( PCODE.LOADCONST, nValue ) 
+	EmitLongCode( PCODE.LOADCONST, nConstIndex ) 
 	
 End Sub
 
@@ -1741,9 +1813,34 @@ End Sub
 '*--------------------------------------------------------------------------
 '* 
 Private Sub DoPush
+	Private nPeepIndex As Int 
+	Private nPeep As Int 
 	
 	'Mtelog.Dbg("DoPush")
-	EmitShortCode( PCODE.PUSH )
+
+    ' If optimizer enabled, attempt "peephole" optimization of push
+	If ( gCodeBlock.OptimizerEnabled = True  ) Then 
+	
+       	' "Peep" at previous instruction
+        nPeepIndex = gCodeIndex - 2
+        If ( nPeepIndex > 0 And gIsPcode.Get(nPeepIndex) = True )  Then 
+			nPeep = GetShortCode( nPeepIndex ) 
+		Else 
+			nPeep = PCODE.NONE 
+		End If
+
+        ' Optimize loadvar and loadconst
+        Select (nPeep) 
+            Case PCODE.LOADVAR
+                EmitShortCodeAt( nPeepIndex, PCODE.PUSHVAR )   ' Push var directly on stack
+            Case PCODE.LOADCONST:
+                EmitShortCodeAt( nPeepIndex, PCODE.PUSHCONST ) ' Push const directly on stack
+            Case Else 	
+                EmitShortCode( PCODE.PUSH )
+		End Select
+	Else 
+		EmitShortCode( PCODE.PUSH )
+	End If
 
 End Sub 
 
@@ -1784,7 +1881,7 @@ End Sub
 '*--------------------------------------------------------------- FixupJumps
 '*
 Private Sub  FixupJumps 
-	Private j As Int 
+	Private i As Int 
 	Private nCodeIndex As Int
 	Private nJumpToIndex As Int
 	Private nJumpOffset As Int 
@@ -1795,13 +1892,13 @@ Private Sub  FixupJumps
 		
 		' Fix jumps
 		nLastJump = gJumpCount - 1 
-		For j = 0 To nLastJump
+		For i = 0 To nLastJump
 			
 			' This is the location of the jump Pcode
-			nCodeIndex = gJumpTable(j).nCodeIndex
+			nCodeIndex = gJumpTable(i).nCodeIndex
 
 			' This is the index where we want to jump to
-			nJumpToIndex = gLabelTargets( gJumpTable(j).nLabelIndex ) 
+			nJumpToIndex = gLabelTargets( gJumpTable(i).nLabelIndex ) 
 
 			' Calculate the offset 
 			nJumpOffset =  (nJumpToIndex - nCodeIndex) - 1  
@@ -1901,7 +1998,7 @@ Private Sub FindParameter( sName As String ) As Int
 		Return ( -1 )
 	End If
 
-	' Find parameter in table
+	' Find parameter in list
 	nLastParam = gParameterCount - 1
 	For nIndex = 0 To nLastParam 
 		If ( gParameters( nIndex ) = sName ) Then 
@@ -1943,9 +2040,9 @@ Private Sub SetError( nError As Int, sDetail As String )  As Int
 	Case gCodeBlock.ERROR_MISSING_ARG
 		sDesc = "Missing argument."
 	Case gCodeBlock.ERROR_TOO_MANY_ARGS
-		sDesc = "Too many arguments"
+		sDesc = "Too many arguments."
 	Case gCodeBlock.ERROR_INSUFFICIENT_ARGS
-		sDesc = "Insufficient arguments"
+		sDesc = "Insufficient arguments."
 	Case gCodeBlock.ERROR_NOT_A_VAR
 		sDesc = "Unknown parameter."
 	Case gCodeBlock.ERROR_UNBALANCED_PARENS
@@ -1990,15 +2087,11 @@ Private Sub  BuildErrorDetail( nError As Int ) As String
 	Private k As Int
 	Private sb As StringBuilder
 
-	If ( gTokenIndex < 0 ) Then 
+	If ( gTokenIndex < 0 Or gTokenList.Size = 0 ) Then 
 		Return ( "" ) 
 	End If 		
 	
-	If ( gTokenList.Size = 0 ) Then 
-		Return ( "" )
-	End If
-	
-	' Build description from tokens
+	' Build detail from tokens
 	sb.Initialize
 	k = Min( gTokenIndex, gTokenEndIndex )
 	For i = 0 To k 
