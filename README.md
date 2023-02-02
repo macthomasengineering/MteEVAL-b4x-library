@@ -7,7 +7,7 @@ There are four editions of the library: Android (B4A), iOS (B4i), Java (B4J), Ja
 
    *JavaS2 is our stage 2 performance edition of the library in native Java.*
 
-See [Anywhere Software](https://www.idevaffiliate.com/33168/16-0-3-1.html) to learn more about B4A, B4i, and B4J cross-platform development tools.
+See [Anywhere Software](https://www.b4x.com/) to learn more about B4A, B4i, and B4J cross-platform development tools.
 
 ## Application
 
